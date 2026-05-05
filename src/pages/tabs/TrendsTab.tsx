@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { subMonths, format, parseISO, addMonths, startOfMonth } from 'date-fns'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, BarChart, Bar, Legend } from 'recharts'
 import { useIncidents } from '@/hooks/useIncidents'
 import { useReviewPeriods, useCreateReviewPeriod, useDeleteReviewPeriod } from '@/hooks/useReviewPeriods'
 import { ANTECEDENT_CODES, BEHAVIOUR_CODES, CONSEQUENCE_CODES, getCodeLabel, getTimeBand, getDayOfWeek } from '@/lib/codeLists'
@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import ReviewPeriodSelector from '@/components/ReviewPeriodSelector'
-import type { ReviewPeriod } from '@/lib/types'
+import type { Incident, ReviewPeriod } from '@/lib/types'
 import type { CodeDefinition } from '@/lib/codeLists'
 
 function FreqTableDisplay({ title, data }: { title: string; data: { label: string; count: number }[] }) {
@@ -139,6 +139,186 @@ function IncidentTrajectoryChart({ incidents, periods }: { incidents: { incident
   )
 }
 
+const BAR_COLORS = ['hsl(var(--primary))', '#ef4444', '#f59e0b', '#8b5cf6', '#06b6d4', '#10b981']
+
+function getTopBehaviourCodes(incidents: Incident[], n: number): string[] {
+  const counts: Record<string, number> = {}
+  for (const inc of incidents) {
+    for (const code of inc.behaviour_codes) {
+      counts[code] = (counts[code] || 0) + 1
+    }
+  }
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, n)
+    .map(([code]) => code)
+}
+
+function getTopCode(codes: string[], codeList: CodeDefinition[]): { label: string; count: number } | null {
+  const counts: Record<string, number> = {}
+  for (const c of codes) counts[c] = (counts[c] || 0) + 1
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]
+  if (!top) return null
+  return { label: `${getCodeLabel(top[0], codeList)} (${top[0]})`, count: top[1] }
+}
+
+interface PeriodSummary {
+  label: string
+  shortLabel: string
+  dateRange: string
+  total: number
+  topBehaviour: { label: string; count: number } | null
+  topAntecedent: { label: string; count: number } | null
+  topConsequence: { label: string; count: number } | null
+  changeVsPrev: number | null
+}
+
+function ComparePeriodsView({ incidents, periods }: { incidents: Incident[]; periods: ReviewPeriod[] }) {
+  const sorted = useMemo(
+    () => [...periods].sort((a, b) => a.date_from.localeCompare(b.date_from)),
+    [periods]
+  )
+
+  const topCodes = useMemo(() => getTopBehaviourCodes(incidents, 3), [incidents])
+
+  const periodData = useMemo(() => {
+    return sorted.map((p) => {
+      const inPeriod = incidents.filter(
+        (i) => i.incident_date >= p.date_from && i.incident_date <= p.date_to
+      )
+      const shortLabel = p.label.split(':')[0].trim()
+
+      const behCodes: string[] = []
+      const antCodes: string[] = []
+      const conCodes: string[] = []
+      for (const inc of inPeriod) {
+        behCodes.push(...inc.behaviour_codes)
+        antCodes.push(...inc.antecedent_codes)
+        conCodes.push(...inc.consequence_codes)
+      }
+
+      // Count per top behaviour code
+      const codeCounts: Record<string, number> = {}
+      for (const code of topCodes) {
+        codeCounts[code] = inPeriod.filter((i) => i.behaviour_codes.includes(code)).length
+      }
+
+      return {
+        periodId: p.id,
+        label: p.label,
+        shortLabel,
+        dateRange: `${format(parseISO(p.date_from), 'dd MMM yy')} – ${format(parseISO(p.date_to), 'dd MMM yy')}`,
+        total: inPeriod.length,
+        topBehaviour: getTopCode(behCodes, BEHAVIOUR_CODES),
+        topAntecedent: getTopCode(antCodes, ANTECEDENT_CODES),
+        topConsequence: getTopCode(conCodes, CONSEQUENCE_CODES),
+        ...codeCounts,
+      }
+    })
+  }, [sorted, incidents, topCodes])
+
+  // Compute change vs previous
+  const summaries: PeriodSummary[] = periodData.map((pd, i) => ({
+    ...pd,
+    changeVsPrev: i === 0 ? null : periodData[i - 1].total === 0 ? null : Math.round(((pd.total - periodData[i - 1].total) / periodData[i - 1].total) * 100),
+  }))
+
+  if (sorted.length < 2) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center text-muted-foreground">
+          <p className="text-sm">Add a second review period to compare trends across time.</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Grouped bar chart */}
+      <Card>
+        <CardContent className="p-4 space-y-3">
+          <h4 className="font-semibold text-sm">Incidents by Review Period</h4>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={periodData} margin={{ top: 10, right: 12, left: -12, bottom: 4 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="shortLabel"
+                tick={{ fontSize: 11 }}
+                stroke="hsl(var(--muted-foreground))"
+              />
+              <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--card))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px',
+                  fontSize: 13,
+                }}
+              />
+              <Legend wrapperStyle={{ fontSize: 11 }} />
+              <Bar dataKey="total" name="Total" fill={BAR_COLORS[0]} radius={[2, 2, 0, 0]} />
+              {topCodes.map((code, i) => (
+                <Bar
+                  key={code}
+                  dataKey={code}
+                  name={getCodeLabel(code, BEHAVIOUR_CODES)}
+                  fill={BAR_COLORS[i + 1]}
+                  radius={[2, 2, 0, 0]}
+                />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* Summary table */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm border-collapse">
+          <thead>
+            <tr className="bg-muted/50">
+              <th className="text-left p-2 font-medium border-b border-border">Period</th>
+              <th className="text-left p-2 font-medium border-b border-border">Date Range</th>
+              <th className="text-center p-2 font-medium border-b border-border">Total</th>
+              <th className="text-left p-2 font-medium border-b border-border">Top Behaviour</th>
+              <th className="text-left p-2 font-medium border-b border-border">Top Antecedent</th>
+              <th className="text-left p-2 font-medium border-b border-border">Top Consequence</th>
+              <th className="text-center p-2 font-medium border-b border-border">Change</th>
+            </tr>
+          </thead>
+          <tbody>
+            {summaries.map((s) => (
+              <tr key={s.shortLabel} className="border-b border-border hover:bg-muted/30">
+                <td className="p-2 font-medium">{s.shortLabel}</td>
+                <td className="p-2 text-muted-foreground text-xs">{s.dateRange}</td>
+                <td className="p-2 text-center font-mono">{s.total}</td>
+                <td className="p-2 text-xs">
+                  {s.topBehaviour ? `${s.topBehaviour.label} (${s.topBehaviour.count})` : '—'}
+                </td>
+                <td className="p-2 text-xs">
+                  {s.topAntecedent ? `${s.topAntecedent.label} (${s.topAntecedent.count})` : '—'}
+                </td>
+                <td className="p-2 text-xs">
+                  {s.topConsequence ? `${s.topConsequence.label} (${s.topConsequence.count})` : '—'}
+                </td>
+                <td className="p-2 text-center">
+                  {s.changeVsPrev == null ? (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  ) : (
+                    <span className={`text-xs font-semibold ${s.changeVsPrev > 0 ? 'text-red-600' : s.changeVsPrev < 0 ? 'text-green-600' : 'text-muted-foreground'}`}>
+                      {s.changeVsPrev > 0 ? '+' : ''}{s.changeVsPrev}%
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
 export default function TrendsTab({ youngPersonId }: { youngPersonId: string }) {
   const now = new Date()
   const today = format(now, 'yyyy-MM-dd')
@@ -149,6 +329,7 @@ export default function TrendsTab({ youngPersonId }: { youngPersonId: string }) 
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null)
   const [showBreakdown, setShowBreakdown] = useState(false)
   const [initialised, setInitialised] = useState(false)
+  const [view, setView] = useState<'trajectory' | 'compare'>('trajectory')
 
   const { data: incidents = [], isLoading } = useIncidents(youngPersonId)
 
@@ -286,75 +467,105 @@ export default function TrendsTab({ youngPersonId }: { youngPersonId: string }) 
 
   return (
     <div className="space-y-6">
-      <ReviewPeriodSelector
-        periods={periods}
-        selectedId={selectedPeriodId}
-        onSelect={handleSelectPeriod}
-        onAdd={handleAddPeriod}
-        onDelete={handleDeletePeriod}
-      />
-
-      <div className="flex gap-3 items-center">
-        <div className="flex-1">
-          <label className="text-xs text-muted-foreground">From</label>
-          <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-        </div>
-        <div className="flex-1">
-          <label className="text-xs text-muted-foreground">To</label>
-          <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-        </div>
+      {/* View toggle */}
+      <div className="flex rounded-lg border border-border overflow-hidden w-fit">
+        <button
+          onClick={() => setView('trajectory')}
+          className={`px-4 py-2 text-sm font-medium transition-colors ${
+            view === 'trajectory'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-background text-muted-foreground hover:bg-muted'
+          }`}
+        >
+          Trajectory
+        </button>
+        <button
+          onClick={() => setView('compare')}
+          className={`px-4 py-2 text-sm font-medium transition-colors ${
+            view === 'compare'
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-background text-muted-foreground hover:bg-muted'
+          }`}
+        >
+          Compare Periods
+        </button>
       </div>
 
-      {/* Trajectory chart — always shows full dataset regardless of review period filter */}
-      <IncidentTrajectoryChart incidents={incidents} periods={periods} />
+      {view === 'compare' ? (
+        <ComparePeriodsView incidents={incidents} periods={periods} />
+      ) : (
+        <>
+          <ReviewPeriodSelector
+            periods={periods}
+            selectedId={selectedPeriodId}
+            onSelect={handleSelectPeriod}
+            onAdd={handleAddPeriod}
+            onDelete={handleDeletePeriod}
+          />
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 gap-3">
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold">{stats.total}</p>
-            <p className="text-xs text-muted-foreground">Total Incidents</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-lg font-bold truncate">{stats.topAntecedent?.label ?? '—'}</p>
-            <p className="text-xs text-muted-foreground">
-              Most Common Antecedent{stats.topAntecedent ? ` (${stats.topAntecedent.count})` : ''}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-lg font-bold truncate">{stats.topBehaviour?.label ?? '—'}</p>
-            <p className="text-xs text-muted-foreground">
-              Most Common Behaviour{stats.topBehaviour ? ` (${stats.topBehaviour.count})` : ''}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <p className="text-lg font-bold">{stats.topTimeBand?.label ?? '—'}</p>
-            <p className="text-xs text-muted-foreground">
-              Peak Time Band{stats.topTimeBand ? ` (${stats.topTimeBand.count})` : ''}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+          <div className="flex gap-3 items-center">
+            <div className="flex-1">
+              <label className="text-xs text-muted-foreground">From</label>
+              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+            </div>
+            <div className="flex-1">
+              <label className="text-xs text-muted-foreground">To</label>
+              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+            </div>
+          </div>
 
-      {/* Breakdown toggle */}
-      <Button variant="outline" className="w-full" onClick={() => setShowBreakdown(!showBreakdown)}>
-        {showBreakdown ? 'Hide full breakdown' : 'View full breakdown'}
-      </Button>
+          {/* Trajectory chart — always shows full dataset regardless of review period filter */}
+          <IncidentTrajectoryChart incidents={incidents} periods={periods} />
 
-      {showBreakdown && (
-        <div className="space-y-6">
-          <FreqTableDisplay title="Day of Week" data={breakdown.days} />
-          <FreqTableDisplay title="Time Band" data={breakdown.timeBands} />
-          <FreqTableDisplay title="Antecedent Frequency" data={breakdown.antecedents} />
-          <FreqTableDisplay title="Behaviour Frequency" data={breakdown.behaviours} />
-          <FreqTableDisplay title="Consequence Frequency" data={breakdown.consequences} />
-        </div>
+          {/* Summary cards */}
+          <div className="grid grid-cols-2 gap-3">
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-2xl font-bold">{stats.total}</p>
+                <p className="text-xs text-muted-foreground">Total Incidents</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-lg font-bold truncate">{stats.topAntecedent?.label ?? '—'}</p>
+                <p className="text-xs text-muted-foreground">
+                  Most Common Antecedent{stats.topAntecedent ? ` (${stats.topAntecedent.count})` : ''}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-lg font-bold truncate">{stats.topBehaviour?.label ?? '—'}</p>
+                <p className="text-xs text-muted-foreground">
+                  Most Common Behaviour{stats.topBehaviour ? ` (${stats.topBehaviour.count})` : ''}
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 text-center">
+                <p className="text-lg font-bold">{stats.topTimeBand?.label ?? '—'}</p>
+                <p className="text-xs text-muted-foreground">
+                  Peak Time Band{stats.topTimeBand ? ` (${stats.topTimeBand.count})` : ''}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Breakdown toggle */}
+          <Button variant="outline" className="w-full" onClick={() => setShowBreakdown(!showBreakdown)}>
+            {showBreakdown ? 'Hide full breakdown' : 'View full breakdown'}
+          </Button>
+
+          {showBreakdown && (
+            <div className="space-y-6">
+              <FreqTableDisplay title="Day of Week" data={breakdown.days} />
+              <FreqTableDisplay title="Time Band" data={breakdown.timeBands} />
+              <FreqTableDisplay title="Antecedent Frequency" data={breakdown.antecedents} />
+              <FreqTableDisplay title="Behaviour Frequency" data={breakdown.behaviours} />
+              <FreqTableDisplay title="Consequence Frequency" data={breakdown.consequences} />
+            </div>
+          )}
+        </>
       )}
     </div>
   )
