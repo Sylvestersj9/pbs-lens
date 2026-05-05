@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Pencil, Archive, StickyNote } from 'lucide-react'
 import { useYoungPerson, useUpdateYoungPerson } from '@/hooks/useYoungPersons'
@@ -92,7 +93,7 @@ export default function PersonProfile() {
   }
 
   return (
-    <div className="space-y-4">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }} className="space-y-4">
       {/* Header */}
       <div className="flex items-start gap-3">
         <Button variant="ghost" size="icon" onClick={() => navigate('/')}>
@@ -219,6 +220,6 @@ export default function PersonProfile() {
         onAdd={(content) => createNote.mutate({ young_person_id: id!, content })}
         onDelete={(noteId) => deleteNote.mutate({ id: noteId, youngPersonId: id! })}
       />
-    </div>
+    </motion.div>
   )
 }

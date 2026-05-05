@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import { ChevronDown, ChevronUp, Trash2, Pencil, FileText, Filter } from 'lucide-react'
@@ -331,7 +332,15 @@ function IncidentCard({
         {expanded ? <ChevronUp className="h-4 w-4 mt-1 shrink-0" /> : <ChevronDown className="h-4 w-4 mt-1 shrink-0" />}
       </div>
 
-      {expanded && (
+      <AnimatePresence>
+        {expanded && (
+        <motion.div
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: 'auto', opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="overflow-hidden"
+        >
         <div className="px-3 pb-3 pt-0 space-y-3 border-t border-border">
           {incident.narrative && (
             <p className="text-sm mt-3 whitespace-pre-wrap">{incident.narrative}</p>
@@ -404,7 +413,9 @@ function IncidentCard({
             </AlertDialog>
           </div>
         </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   )
 }

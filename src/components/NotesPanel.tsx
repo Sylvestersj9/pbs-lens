@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { format } from 'date-fns'
 import { X, Trash2 } from 'lucide-react'
 import type { Note } from '@/lib/types'
@@ -17,8 +18,6 @@ interface NotesPanelProps {
 export default function NotesPanel({ open, onClose, notes, onAdd, onDelete }: NotesPanelProps) {
   const [content, setContent] = useState('')
 
-  if (!open) return null
-
   const handleSave = () => {
     if (content.trim()) {
       onAdd(content.trim())
@@ -27,9 +26,23 @@ export default function NotesPanel({ open, onClose, notes, onAdd, onDelete }: No
   }
 
   return (
-    <>
-      <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
-      <div className="fixed top-0 right-0 h-full w-full max-w-md bg-card border-l border-border z-50 flex flex-col shadow-xl">
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={onClose}
+          />
+          <motion.div
+            initial={{ x: 300 }}
+            animate={{ x: 0 }}
+            exit={{ x: 300 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed top-0 right-0 h-full w-full max-w-md bg-card border-l border-border z-50 flex flex-col shadow-xl"
+          >
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-lg font-semibold">Notes</h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
@@ -78,7 +91,9 @@ export default function NotesPanel({ open, onClose, notes, onAdd, onDelete }: No
             Save Note
           </Button>
         </div>
-      </div>
-    </>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   )
 }

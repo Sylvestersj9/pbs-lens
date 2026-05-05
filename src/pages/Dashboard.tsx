@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { startOfMonth, format } from 'date-fns'
@@ -142,7 +143,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6 pb-24">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }} className="space-y-6 pb-24">
       <h1 className="text-2xl font-bold">{firstName}&apos;s Dashboard</h1>
 
       {/* Stats bar */}
@@ -211,13 +212,18 @@ export default function Dashboard() {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filtered.map((yp) => {
+          {filtered.map((yp, index) => {
             const count = incidentCountsByYP[yp.id] || 0
             const lastDate = lastIncidentByYP[yp.id]
 
             return (
-              <Card
+              <motion.div
                 key={yp.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+              <Card
                 className="cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => navigate(`/person/${yp.id}`)}
               >
@@ -244,6 +250,7 @@ export default function Dashboard() {
                   />
                 </CardContent>
               </Card>
+              </motion.div>
             )
           })}
         </div>
@@ -251,6 +258,6 @@ export default function Dashboard() {
 
       {/* FAB */}
       <FloatingActionButton label="Add Young Person" onClick={() => navigate('/add')} />
-    </div>
+    </motion.div>
   )
 }
