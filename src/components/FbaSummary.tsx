@@ -124,7 +124,7 @@ export default function FbaSummary({ open, onClose, incidents, reviewPeriods, yo
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose() }}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[90vw] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{youngPersonInitials} — Functional Behaviour Assessment Summary</DialogTitle>
         </DialogHeader>
@@ -142,16 +142,16 @@ export default function FbaSummary({ open, onClose, incidents, reviewPeriods, yo
               </Button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm border-collapse">
+            <div className="overflow-x-auto -mx-2">
+              <table className="w-full text-sm border-collapse min-w-[800px]">
                 <thead>
                   <tr className="bg-muted/50">
-                    <th className="text-left p-2 font-medium border-b border-border">Behaviour</th>
-                    <th className="text-left p-2 font-medium border-b border-border">Function</th>
-                    <th className="text-left p-2 font-medium border-b border-border">Primary Antecedents</th>
-                    <th className="text-left p-2 font-medium border-b border-border">Primary Consequences</th>
-                    <th className="text-center p-2 font-medium border-b border-border">Freq.</th>
-                    <th className="text-left p-2 font-medium border-b border-border">Trend</th>
+                    <th className="text-left p-2 font-medium border-b border-border min-w-[140px]">Behaviour</th>
+                    <th className="text-left p-2 font-medium border-b border-border min-w-[180px]">Function</th>
+                    <th className="text-left p-2 font-medium border-b border-border min-w-[180px]">Primary Antecedents</th>
+                    <th className="text-left p-2 font-medium border-b border-border min-w-[180px]">Primary Consequences</th>
+                    <th className="text-center p-2 font-medium border-b border-border min-w-[50px]">Freq.</th>
+                    <th className="text-left p-2 font-medium border-b border-border min-w-[100px]">Trend</th>
                   </tr>
                 </thead>
                 <tbody>
