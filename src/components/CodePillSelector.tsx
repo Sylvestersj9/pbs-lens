@@ -21,7 +21,7 @@ export default function CodePillSelector({ codes, selected, onToggle, aiSuggeste
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5 sm:gap-2">
         {codes.map((c) => {
           const isSelected = selected.includes(c.code)
           const isAI = aiSuggested.includes(c.code)
@@ -32,7 +32,7 @@ export default function CodePillSelector({ codes, selected, onToggle, aiSuggeste
               key={c.code}
               type="button"
               onClick={() => onToggle(c.code)}
-              className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${styles}`}
+              className={`inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-colors ${styles}`}
             >
               {c.code}
               {isAI && isSelected && (

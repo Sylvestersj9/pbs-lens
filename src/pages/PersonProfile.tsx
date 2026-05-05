@@ -113,7 +113,7 @@ export default function PersonProfile() {
       </div>
 
       {/* Action buttons */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Button variant="outline" size="sm" onClick={openEdit} className="gap-1">
           <Pencil className="h-3.5 w-3.5" /> Edit
         </Button>

@@ -124,8 +124,8 @@ export default function AnalysisTab({ youngPersonId, youngPersonInitials }: { yo
         period_from: dateFrom,
         period_to: dateTo,
       })
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to generate analysis')
+    } catch {
+      toast.error('Something went wrong generating the analysis. Please try again.')
     } finally {
       setGeneratingDraft(false)
     }
@@ -149,8 +149,8 @@ export default function AnalysisTab({ youngPersonId, youngPersonInitials }: { yo
         max_tokens: 2000,
       })
       setReg44Summary(content)
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to generate Reg 44 summary')
+    } catch {
+      toast.error('Something went wrong generating the Reg 44 summary. Please try again.')
     } finally {
       setGeneratingReg44(false)
     }
@@ -233,25 +233,36 @@ export default function AnalysisTab({ youngPersonId, youngPersonInitials }: { yo
         </div>
       )}
 
-      {/* Generate buttons */}
+      {/* Generate buttons + empty state guidance */}
       {incidentCount >= 3 && !generatingDraft && !generatingReg44 && (
-        <div className="flex gap-3">
-          <Button onClick={handleGenerateDraft}>
-            <Sparkles className="h-4 w-4 mr-2" />
-            Generate Draft Analysis
-          </Button>
-          <Button variant="outline" onClick={handleGenerateReg44}>
-            Generate Reg 44 Summary
-          </Button>
-        </div>
+        <>
+          {!draftAnalysis && !reg44Summary && !lastAnalysis && (
+            <div className="rounded-lg border border-border bg-primary/5 p-5 text-center space-y-2">
+              <Sparkles className="h-6 w-6 text-primary mx-auto" />
+              <p className="text-sm font-medium">Ready to generate your first analysis</p>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto">
+                PBS Lens will read all {incidentCount} incidents in this period and produce a clinical behaviour analysis report grounded in PACE, Polyvagal Theory, and your coding framework. You can also generate a Reg 44 summary formatted for independent visitor reports.
+              </p>
+            </div>
+          )}
+          <div className="flex gap-3">
+            <Button onClick={handleGenerateDraft}>
+              <Sparkles className="h-4 w-4 mr-2" />
+              Generate Draft Analysis
+            </Button>
+            <Button variant="outline" onClick={handleGenerateReg44}>
+              Generate Reg 44 Summary
+            </Button>
+          </div>
+        </>
       )}
 
       {generatingDraft && (
-        <AiLoadingIndicator label="Generating clinical analysis..." estimateSeconds={30} />
+        <AiLoadingIndicator messages={['Reading incident patterns...', 'Identifying clinical themes...', 'Analysing antecedent triggers...', 'Mapping behaviour functions...', 'Evaluating staff responses...', 'Drafting clinical analysis...', 'Formulating recommendations...']} estimateSeconds={30} />
       )}
 
       {generatingReg44 && (
-        <AiLoadingIndicator label="Generating Reg 44 summary..." estimateSeconds={15} />
+        <AiLoadingIndicator messages={['Reading incident data...', 'Summarising for Reg 44 format...', 'Assessing staff practice...', 'Drafting recommendations...']} estimateSeconds={15} />
       )}
 
       {/* Draft Analysis output */}
@@ -276,7 +287,7 @@ export default function AnalysisTab({ youngPersonId, youngPersonInitials }: { yo
           </div>
 
           {/* Content */}
-          <div className="px-6 py-5 prose prose-sm dark:prose-invert max-w-none prose-headings:text-base prose-headings:font-bold prose-headings:mt-6 prose-headings:mb-3 prose-headings:border-b prose-headings:border-border prose-headings:pb-2 first:prose-headings:mt-0 prose-p:my-3 prose-p:leading-relaxed prose-strong:text-foreground">
+          <div className="px-4 sm:px-6 py-5 prose prose-sm dark:prose-invert max-w-none prose-headings:text-base prose-headings:font-bold prose-headings:mt-6 prose-headings:mb-3 prose-headings:border-b prose-headings:border-border prose-headings:pb-2 first:prose-headings:mt-0 prose-p:my-3 prose-p:leading-relaxed prose-strong:text-foreground">
             <ReactMarkdown>
               {showFullAnalysis ? draftAnalysis : getPartialAnalysis(draftAnalysis)}
             </ReactMarkdown>
@@ -306,7 +317,7 @@ export default function AnalysisTab({ youngPersonId, youngPersonInitials }: { yo
               {youngPersonInitials} · {format(new Date(dateFrom), 'dd MMM yyyy')} – {format(new Date(dateTo), 'dd MMM yyyy')} · {incidentCount} incidents
             </p>
           </div>
-          <div className="px-6 py-5 prose prose-sm dark:prose-invert max-w-none prose-headings:text-[15px] prose-headings:font-bold prose-headings:mt-6 prose-headings:mb-3 prose-headings:border-b prose-headings:border-border prose-headings:pb-2 first:prose-headings:mt-0 prose-p:my-3 prose-p:leading-relaxed prose-li:my-1.5 prose-ul:my-3 prose-ol:my-3 prose-strong:text-foreground">
+          <div className="px-4 sm:px-6 py-5 prose prose-sm dark:prose-invert max-w-none prose-headings:text-[15px] prose-headings:font-bold prose-headings:mt-6 prose-headings:mb-3 prose-headings:border-b prose-headings:border-border prose-headings:pb-2 first:prose-headings:mt-0 prose-p:my-3 prose-p:leading-relaxed prose-li:my-1.5 prose-ul:my-3 prose-ol:my-3 prose-strong:text-foreground">
             <ReactMarkdown>{reg44Summary}</ReactMarkdown>
           </div>
           <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-background/50">

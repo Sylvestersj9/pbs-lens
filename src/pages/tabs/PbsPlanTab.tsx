@@ -151,7 +151,7 @@ export default function PbsPlanTab({ youngPersonId, youngPersonInitials }: { you
       setAiSections(new Set(['triggers', 'behaviour_functions', 'protective_factors']))
       toast.success('AI draft populated — please review and edit before saving')
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to populate from incidents')
+      toast.error('Something went wrong populating the plan. Please try again.')
     } finally {
       setPopulating(false)
     }
@@ -218,7 +218,7 @@ export default function PbsPlanTab({ youngPersonId, youngPersonInitials }: { you
       </div>
 
       {populating && (
-        <AiLoadingIndicator label="Analysing incidents for PBS plan..." estimateSeconds={20} />
+        <AiLoadingIndicator messages={['Reading incident history...', 'Identifying slow and fast triggers...', 'Mapping behaviour functions...', 'Identifying protective factors...', 'Drafting PBS plan sections...']} estimateSeconds={20} />
       )}
 
       {/* Sections */}

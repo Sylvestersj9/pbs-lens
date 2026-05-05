@@ -169,7 +169,7 @@ export default function Dashboard() {
         <div className="rounded-lg border bg-card p-4 text-center">
           <TrendingUp className="h-5 w-5 mx-auto mb-1 text-muted-foreground" />
           <p className="text-sm font-semibold mt-1">{topBehaviourCode}</p>
-          <p className="text-xs text-muted-foreground">Top Behaviour</p>
+          <p className="text-xs text-muted-foreground">Most Common Behaviour This Month</p>
         </div>
       </div>
 

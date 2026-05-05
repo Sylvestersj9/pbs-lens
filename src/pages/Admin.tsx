@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -14,7 +15,7 @@ export default function Admin() {
   const [loading, setLoading] = useState(false)
 
   if (user?.email !== ADMIN_EMAIL) {
-    return <div className="text-center py-12 text-muted-foreground">Access denied</div>
+    return <Navigate to="/" replace />
   }
 
   const handleSeed = async () => {
@@ -26,8 +27,8 @@ export default function Admin() {
 
       if (error) throw error
       toast.success(data.message || 'Data seeded successfully')
-    } catch (e: any) {
-      toast.error(e.message)
+    } catch {
+      toast.error('Failed to seed data. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -50,7 +51,7 @@ export default function Admin() {
           {loading ? 'Seeding...' : 'Seed Data'}
         </Button>
         <p className="text-xs text-muted-foreground">
-          Seeds MR (13 incidents, review periods, full PBS plan), JT (4 incidents), and KL (no incidents) for the specified user.
+          Seeds MR (13 incidents), AC (23 incidents), and DG (20 incidents) with review periods and PBS plan for MR.
         </p>
       </CardContent>
     </Card>

@@ -100,9 +100,8 @@ Return ONLY the JSON, no other text.`,
       setConsequences((prev) => [...new Set([...prev, ...suggestedC])])
 
       toast.success('AI suggestions applied')
-    } catch (e) {
-      toast.error('Failed to get AI suggestions')
-      console.error(e)
+    } catch {
+      toast.error('Something went wrong suggesting codes. Please try again.')
     } finally {
       setSuggesting(false)
     }
@@ -212,7 +211,7 @@ Return ONLY the JSON, no other text.`,
             </Button>
           )}
           {suggesting && (
-            <AiLoadingIndicator label="Analysing narrative..." estimateSeconds={5} />
+            <AiLoadingIndicator messages={['Reading narrative...', 'Identifying behaviour codes...', 'Matching antecedent patterns...', 'Suggesting consequence codes...']} estimateSeconds={5} />
           )}
         </CardContent>
       </Card>
