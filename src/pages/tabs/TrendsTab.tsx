@@ -144,12 +144,25 @@ export default function TrendsTab({ youngPersonId }: { youngPersonId: string }) 
   const today = format(now, 'yyyy-MM-dd')
   const threeMonthsAgo = format(subMonths(now, 3), 'yyyy-MM-dd')
 
-  const [dateFrom, setDateFrom] = useState(threeMonthsAgo)
-  const [dateTo, setDateTo] = useState(today)
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null)
   const [showBreakdown, setShowBreakdown] = useState(false)
+  const [initialised, setInitialised] = useState(false)
 
   const { data: incidents = [], isLoading } = useIncidents(youngPersonId)
+
+  // Set initial date range to cover all incidents once data loads
+  if (!initialised && incidents.length > 0) {
+    const sorted = [...incidents].sort((a, b) => a.incident_date.localeCompare(b.incident_date))
+    setDateFrom(sorted[0].incident_date)
+    setDateTo(sorted[sorted.length - 1].incident_date)
+    setInitialised(true)
+  } else if (!initialised && !isLoading && incidents.length === 0) {
+    setDateFrom(threeMonthsAgo)
+    setDateTo(today)
+    setInitialised(true)
+  }
   const { data: periods = [] } = useReviewPeriods(youngPersonId)
   const createPeriod = useCreateReviewPeriod()
   const deletePeriod = useDeleteReviewPeriod()
@@ -161,6 +174,15 @@ export default function TrendsTab({ youngPersonId }: { youngPersonId: string }) 
       setDateTo(period.date_to)
     } else {
       setSelectedPeriodId(null)
+      // Reset to full range when switching to custom
+      if (incidents.length > 0) {
+        const sorted = [...incidents].sort((a, b) => a.incident_date.localeCompare(b.incident_date))
+        setDateFrom(sorted[0].incident_date)
+        setDateTo(sorted[sorted.length - 1].incident_date)
+      } else {
+        setDateFrom(threeMonthsAgo)
+        setDateTo(today)
+      }
     }
   }
 
