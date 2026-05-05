@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react'
 import { format } from 'date-fns'
-import { Download, X } from 'lucide-react'
+import { Download } from 'lucide-react'
 import type { Incident, ReviewPeriod } from '@/lib/types'
-import { getCodeLabel, ANTECEDENT_CODES, BEHAVIOUR_CODES, CONSEQUENCE_CODES } from '@/lib/codeLists'
+import { getCodeLabel, ANTECEDENT_CODES, BEHAVIOUR_CODES, CONSEQUENCE_CODES, type CodeDefinition } from '@/lib/codeLists'
 import { exportFbaSummaryPdf, type FbaRow } from '@/lib/pdf'
 import { Button } from '@/components/ui/button'
 import {
@@ -42,7 +42,7 @@ interface FbaRowWithOverride extends FbaRow {
   functionOverride: string | null
 }
 
-function getTopN(arr: string[], n: number, codeList: { code: string; label: string }[]): string[] {
+function getTopN(arr: string[], n: number, codeList: CodeDefinition[]): string[] {
   const counts: Record<string, number> = {}
   for (const code of arr) {
     counts[code] = (counts[code] || 0) + 1

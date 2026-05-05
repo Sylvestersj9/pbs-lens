@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format, differenceInDays, parseISO } from 'date-fns'
-import { Activity, ChevronDown, ChevronUp, Trash2, Pencil, Plus, X } from 'lucide-react'
+import { Activity, ChevronDown, ChevronUp, Trash2, Pencil } from 'lucide-react'
 import { useSeizures, useCreateSeizure, useUpdateSeizure, useDeleteSeizure } from '@/hooks/useSeizures'
 import { SEIZURE_TYPES } from '@/lib/types'
 import type { Seizure } from '@/lib/types'
