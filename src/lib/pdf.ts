@@ -185,23 +185,42 @@ export function exportFbaSummaryPdf(
   addY(10)
 
   // Table
-  const colWidths = [28, 32, 34, 34, 18, 22]
+  const maxWidth = pageWidth - margin * 2
+  const colRatios = [0.15, 0.20, 0.22, 0.22, 0.08, 0.13]
+  const colWidths = colRatios.map(r => r * maxWidth)
   const headers = ['Behaviour', 'Function', 'Antecedents', 'Consequences', 'Freq.', 'Trend']
   const tableWidth = colWidths.reduce((a, b) => a + b, 0)
   const startX = margin
+  const cellPad = 3
+  const cellLineHeight = 3.5
+
+  const drawRowCells = (rowTop: number, rowHeight: number) => {
+    doc.setDrawColor(200, 200, 200)
+    // Horizontal lines: top and bottom of row
+    doc.line(startX, rowTop, startX + tableWidth, rowTop)
+    doc.line(startX, rowTop + rowHeight, startX + tableWidth, rowTop + rowHeight)
+    // Vertical lines for each column
+    let vx = startX
+    for (let i = 0; i <= colWidths.length; i++) {
+      doc.line(vx, rowTop, vx, rowTop + rowHeight)
+      if (i < colWidths.length) vx += colWidths[i]
+    }
+  }
 
   // Header row
-  const headerHeight = 8
-  doc.setFillColor(240, 240, 240)
-  doc.rect(startX, getY() - 5, tableWidth, headerHeight, 'F')
   doc.setFontSize(8)
   doc.setFont('helvetica', 'bold')
-  let hx = startX + 2
+  const headerHeight = 10
+  const headerTop = getY()
+  doc.setFillColor(240, 240, 240)
+  doc.rect(startX, headerTop, tableWidth, headerHeight, 'F')
+  drawRowCells(headerTop, headerHeight)
+  let hx = startX + cellPad
   for (let i = 0; i < headers.length; i++) {
-    doc.text(headers[i], hx, getY())
+    doc.text(headers[i], hx, headerTop + cellPad + 3)
     hx += colWidths[i]
   }
-  addY(headerHeight)
+  setY(headerTop + headerHeight)
 
   // Data rows
   doc.setFont('helvetica', 'normal')
@@ -221,26 +240,27 @@ export function exportFbaSummaryPdf(
     let maxLines = 1
     const wrappedCells: string[][] = []
     for (let i = 0; i < cellTexts.length; i++) {
-      const wrapped = doc.splitTextToSize(cellTexts[i], colWidths[i] - 4)
+      const wrapped = doc.splitTextToSize(cellTexts[i], colWidths[i] - cellPad * 2)
       wrappedCells.push(wrapped)
       if (wrapped.length > maxLines) maxLines = wrapped.length
     }
-    const rowHeight = maxLines * 4 + 4
+    const rowHeight = maxLines * cellLineHeight + cellPad * 2 + 2
 
-    checkPageBreak(rowHeight + 2)
+    checkPageBreak(rowHeight)
 
-    // Draw row border
-    doc.setDrawColor(220, 220, 220)
-    doc.rect(startX, getY() - 4, tableWidth, rowHeight)
+    const rowTop = getY()
+
+    // Draw cell borders and dividers
+    drawRowCells(rowTop, rowHeight)
 
     // Draw cell text
-    let cx = startX + 2
+    let cx = startX + cellPad
     for (let i = 0; i < wrappedCells.length; i++) {
-      doc.text(wrappedCells[i], cx, getY())
+      doc.text(wrappedCells[i], cx, rowTop + cellPad + 3)
       cx += colWidths[i]
     }
 
-    setY(getY() + rowHeight - 2)
+    setY(rowTop + rowHeight)
   }
 
   addFooter()
