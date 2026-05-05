@@ -179,7 +179,16 @@ export default function QualityStandardsTab({ youngPersonId }: { youngPersonId: 
           }}
         >
           <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select period" />
+            <SelectValue placeholder="Select period">
+              {selectedPeriodId === '__standalone__' || selectedPeriodId === null
+                ? 'Standalone Assessment'
+                : (() => {
+                    const p = sortedPeriods.find((p) => p.id === selectedPeriodId)
+                    return p
+                      ? `${p.label.split(':')[0].trim()} (${format(parseISO(p.date_from), 'dd/MM/yy')} – ${format(parseISO(p.date_to), 'dd/MM/yy')})`
+                      : 'Select period'
+                  })()}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__standalone__">Standalone Assessment</SelectItem>
