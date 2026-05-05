@@ -51,7 +51,7 @@ export default function Admin() {
           {loading ? 'Seeding...' : 'Seed Data'}
         </Button>
         <p className="text-xs text-muted-foreground">
-          Seeds MR (13 incidents), AC (23 incidents), and DG (20 incidents) with review periods and PBS plan for MR.
+          Seeds MR (13 incidents), AC (23 incidents), DG (20 incidents), NOG (8 incidents) with review periods and PBS plans for MR, AC and DG.
         </p>
       </CardContent>
     </Card>
