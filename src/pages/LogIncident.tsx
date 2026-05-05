@@ -39,6 +39,7 @@ export default function LogIncident() {
   const [aiAntecedents, setAiAntecedents] = useState<string[]>([])
   const [aiBehaviours, setAiBehaviours] = useState<string[]>([])
   const [aiConsequences, setAiConsequences] = useState<string[]>([])
+  const [logReference, setLogReference] = useState('')
   const [suggesting, setSuggesting] = useState(false)
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export default function LogIncident() {
       setTime(existingIncident.incident_time ?? '')
       setNarrative(existingIncident.narrative)
       setStaffInitials(existingIncident.staff_initials ?? '')
+      setLogReference(existingIncident.log_reference ?? '')
       setAntecedents(existingIncident.antecedent_codes ?? [])
       setBehaviours(existingIncident.behaviour_codes ?? [])
       setConsequences(existingIncident.consequence_codes ?? [])
@@ -127,6 +129,7 @@ Return ONLY the JSON, no other text.`,
       behaviour_codes: behaviours,
       consequence_codes: consequences,
       staff_initials: staffInitials || null,
+      log_reference: logReference.trim() || null,
     }
 
     if (editId) {
@@ -260,6 +263,19 @@ Return ONLY the JSON, no other text.`,
             onToggle={(code) => toggleCode(code, consequences, setConsequences)}
             aiSuggested={aiConsequences}
             color="indigo"
+          />
+        </CardContent>
+      </Card>
+
+      {/* Log Reference */}
+      <Card>
+        <CardContent className="p-4 space-y-2">
+          <Label htmlFor="logReference">Log Reference (optional)</Label>
+          <Input
+            id="logReference"
+            value={logReference}
+            onChange={(e) => setLogReference(e.target.value)}
+            placeholder="e.g. INC-2025-0047 — care management system reference"
           />
         </CardContent>
       </Card>

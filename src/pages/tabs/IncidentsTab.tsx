@@ -392,6 +392,12 @@ function IncidentCard({
             <p className="text-xs text-muted-foreground">Staff: {incident.staff_initials}</p>
           )}
 
+          {incident.log_reference && (
+            <span className="inline-block px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+              Ref: {incident.log_reference}
+            </span>
+          )}
+
           <div className="flex gap-2 pt-2">
             <Button variant="outline" size="sm" onClick={onEdit} className="gap-1">
               <Pencil className="h-3 w-3" /> Edit

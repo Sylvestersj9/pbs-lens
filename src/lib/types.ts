@@ -22,6 +22,7 @@ export interface Incident {
   behaviour_codes: string[]
   consequence_codes: string[]
   staff_initials: string | null
+  log_reference: string | null
   created_at: string
 }
 
