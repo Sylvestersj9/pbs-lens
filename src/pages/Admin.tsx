@@ -10,9 +10,13 @@ import { toast } from 'sonner'
 const ADMIN_EMAIL = 'sylvestersj9@gmail.com'
 
 export default function Admin() {
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const [email, setEmail] = useState('nora-edwards@outlook.com')
   const [loading, setLoading] = useState(false)
+
+  if (authLoading) {
+    return <div className="flex items-center justify-center h-64"><p className="text-muted-foreground">Loading...</p></div>
+  }
 
   if (user?.email !== ADMIN_EMAIL) {
     return <Navigate to="/" replace />
