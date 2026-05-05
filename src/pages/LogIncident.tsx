@@ -107,8 +107,8 @@ Return ONLY the JSON, no other text.`,
   }
 
   const handleSave = () => {
-    if (narrative.length < 20) {
-      toast.error('Narrative must be at least 20 characters')
+    if (!narrative.trim()) {
+      toast.error('Please describe what happened')
       return
     }
 
@@ -185,8 +185,8 @@ Return ONLY the JSON, no other text.`,
             value={narrative}
             onChange={setNarrative}
             label="Narrative"
-            placeholder="Describe what happened..."
-            minLength={20}
+            placeholder="Describe what happened in detail — include what led up to the incident, the young person's response, staff actions, and how the situation resolved..."
+            rows={8}
           />
           <div className="space-y-2">
             <Label htmlFor="staffInitials">Staff initials</Label>

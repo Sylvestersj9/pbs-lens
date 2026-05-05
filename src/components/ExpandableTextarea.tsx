@@ -9,9 +9,10 @@ interface ExpandableTextareaProps {
   label: string
   placeholder?: string
   minLength?: number
+  rows?: number
 }
 
-export default function ExpandableTextarea({ value, onChange, label, placeholder, minLength }: ExpandableTextareaProps) {
+export default function ExpandableTextarea({ value, onChange, label, placeholder, minLength, rows }: ExpandableTextareaProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -36,7 +37,8 @@ export default function ExpandableTextarea({ value, onChange, label, placeholder
         onChange={(e) => onChange(e.target.value)}
         onFocus={handleFocus}
         placeholder={placeholder}
-        className="min-h-[80px] resize-none"
+        rows={rows}
+        className={`${rows ? '' : 'min-h-[80px]'} resize-none`}
       />
       <div className="text-xs text-muted-foreground text-right">
         {value.length} characters{minLength ? ` (min ${minLength})` : ''}
