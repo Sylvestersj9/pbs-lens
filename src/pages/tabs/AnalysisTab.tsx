@@ -51,9 +51,10 @@ export default function AnalysisTab({ youngPersonId, youngPersonInitials }: { yo
   const now = new Date()
 
   // Date range state
-  const [dateFrom, setDateFrom] = useState(format(subMonths(now, 3), 'yyyy-MM-dd'))
-  const [dateTo, setDateTo] = useState(format(now, 'yyyy-MM-dd'))
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null)
+  const [initialised, setInitialised] = useState(false)
 
   // Generation state
   const [generatingDraft, setGeneratingDraft] = useState(false)
@@ -63,9 +64,27 @@ export default function AnalysisTab({ youngPersonId, youngPersonInitials }: { yo
   const [showFullAnalysis, setShowFullAnalysis] = useState(false)
 
   // Hooks
-  const { data: incidents = [] } = useIncidents(youngPersonId)
+  const { data: incidents = [], isLoading } = useIncidents(youngPersonId)
   const { data: analyses = [] } = useAnalyses(youngPersonId)
   const { data: periods = [] } = useReviewPeriods(youngPersonId)
+
+  // Default to first review period when data loads
+  if (!initialised && periods.length > 0 && incidents.length > 0) {
+    const firstPeriod = [...periods].sort((a, b) => a.date_from.localeCompare(b.date_from))[0]
+    setSelectedPeriodId(firstPeriod.id)
+    setDateFrom(firstPeriod.date_from)
+    setDateTo(firstPeriod.date_to)
+    setInitialised(true)
+  } else if (!initialised && incidents.length > 0 && !isLoading) {
+    const sorted = [...incidents].sort((a, b) => a.incident_date.localeCompare(b.incident_date))
+    setDateFrom(sorted[0].incident_date)
+    setDateTo(sorted[sorted.length - 1].incident_date)
+    setInitialised(true)
+  } else if (!initialised && !isLoading && incidents.length === 0) {
+    setDateFrom(format(subMonths(now, 3), 'yyyy-MM-dd'))
+    setDateTo(format(now, 'yyyy-MM-dd'))
+    setInitialised(true)
+  }
   const createPeriod = useCreateReviewPeriod()
   const deletePeriod = useDeleteReviewPeriod()
   const saveAnalysis = useSaveAnalysis()

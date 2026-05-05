@@ -152,8 +152,16 @@ export default function TrendsTab({ youngPersonId }: { youngPersonId: string }) 
 
   const { data: incidents = [], isLoading } = useIncidents(youngPersonId)
 
-  // Set initial date range to cover all incidents once data loads
-  if (!initialised && incidents.length > 0) {
+  const { data: periods = [] } = useReviewPeriods(youngPersonId)
+
+  // Set initial date range: default to first review period, else full incident range
+  if (!initialised && periods.length > 0 && incidents.length > 0) {
+    const firstPeriod = [...periods].sort((a, b) => a.date_from.localeCompare(b.date_from))[0]
+    setSelectedPeriodId(firstPeriod.id)
+    setDateFrom(firstPeriod.date_from)
+    setDateTo(firstPeriod.date_to)
+    setInitialised(true)
+  } else if (!initialised && incidents.length > 0 && !isLoading) {
     const sorted = [...incidents].sort((a, b) => a.incident_date.localeCompare(b.incident_date))
     setDateFrom(sorted[0].incident_date)
     setDateTo(sorted[sorted.length - 1].incident_date)
@@ -163,7 +171,6 @@ export default function TrendsTab({ youngPersonId }: { youngPersonId: string }) 
     setDateTo(today)
     setInitialised(true)
   }
-  const { data: periods = [] } = useReviewPeriods(youngPersonId)
   const createPeriod = useCreateReviewPeriod()
   const deletePeriod = useDeleteReviewPeriod()
 
