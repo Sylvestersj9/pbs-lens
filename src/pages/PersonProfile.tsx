@@ -32,6 +32,7 @@ import IncidentsTab from '@/pages/tabs/IncidentsTab'
 import TrendsTab from '@/pages/tabs/TrendsTab'
 import AnalysisTab from '@/pages/tabs/AnalysisTab'
 import PbsPlanTab from '@/pages/tabs/PbsPlanTab'
+import SeizuresTab from '@/pages/tabs/SeizuresTab'
 
 export default function PersonProfile() {
   const { id } = useParams<{ id: string }>()
@@ -158,6 +159,7 @@ export default function PersonProfile() {
           <TabsTrigger value="trends">Trends</TabsTrigger>
           <TabsTrigger value="analysis">Analysis</TabsTrigger>
           <TabsTrigger value="pbs-plan">PBS Plan</TabsTrigger>
+          <TabsTrigger value="seizures">Seizures</TabsTrigger>
         </TabsList>
         <TabsContent value="incidents">
           <IncidentsTab youngPersonId={yp.id} />
@@ -170,6 +172,9 @@ export default function PersonProfile() {
         </TabsContent>
         <TabsContent value="pbs-plan">
           <PbsPlanTab youngPersonId={yp.id} youngPersonInitials={yp.initials} />
+        </TabsContent>
+        <TabsContent value="seizures">
+          <SeizuresTab youngPersonId={yp.id} />
         </TabsContent>
       </Tabs>
 

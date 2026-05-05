@@ -86,3 +86,24 @@ export interface Note {
   content: string
   created_at: string
 }
+
+export interface Seizure {
+  id: string
+  user_id: string
+  young_person_id: string
+  date: string
+  time: string | null
+  day_of_week: string | null
+  seizure_type: string | null
+  duration_seconds: number | null
+  notes: string | null
+  created_at: string
+}
+
+export const SEIZURE_TYPES = [
+  'Tonic-clonic',
+  'Focal',
+  'Absence',
+  'Myoclonic',
+  'Unknown/Unclassified',
+] as const

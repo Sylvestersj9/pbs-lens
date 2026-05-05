@@ -140,6 +140,34 @@ Deno.serve(async (req) => {
       .from('review_periods')
       .insert(reviewPeriods.map(rp => ({ ...rp, user_id: userId, young_person_id: mrId })))
 
+    // Insert MR seizures (4 total)
+    const mrSeizures = [
+      {
+        date: '2025-10-06', time: '07:30:00', day_of_week: 'Monday',
+        seizure_type: 'Tonic-clonic', duration_seconds: 60,
+        notes: 'FIRST SEIZURE. Difficult to wake for school — up since 6am. Tonic-clonic seizure. Ambulance called. Hospital — discharged same day. Referred for EEG. Returned home, back to himself by evening.',
+      },
+      {
+        date: '2025-10-14', time: '09:14:00', day_of_week: 'Tuesday',
+        seizure_type: 'Tonic-clonic', duration_seconds: 60,
+        notes: 'SECOND SEIZURE. Outside bedroom door — staff waiting. Came out, returned to bed, tonic-clonic seizure under covers. Stiff limbs, dribbling, unconsciousness. Paramedics called — observations normal. EEG appointment expedited to 22/10/25.',
+      },
+      {
+        date: '2025-11-05', time: '12:20:00', day_of_week: 'Wednesday',
+        seizure_type: 'Tonic-clonic', duration_seconds: 140,
+        notes: 'THIRD SEIZURE. Woke happy with new book delivery. Got dressed, lots of object-tapping with mouth. Outside — fell over, tonic-clonic seizure on ground in garden. Stiff limbs, dribbling, slight vomiting, unconsciousness, frozen face. Lasted 2 minutes 20 seconds. Hospital. Discharged evening. Ambulance within 7 minutes.',
+      },
+      {
+        date: '2025-11-24', time: '07:24:00', day_of_week: 'Monday',
+        seizure_type: 'Focal', duration_seconds: 300,
+        notes: 'FOURTH SEIZURE. Good night\'s sleep. After personal care, ready for school, sat on snug sofa. Began seizing 07:24 — whole body shaking, right leg only. Staff timed seizure. Ambulance called immediately. Recovery position once shaking stopped. Hospital. Now prescribed Levetiracetam 750mg twice daily granules. Seizure-free since this date.',
+      },
+    ]
+
+    await supabaseAdmin
+      .from('seizures')
+      .insert(mrSeizures.map(s => ({ ...s, user_id: userId, young_person_id: mrId })))
+
     // Insert PBS Plan for MR
     await supabaseAdmin
       .from('pbs_plans')
