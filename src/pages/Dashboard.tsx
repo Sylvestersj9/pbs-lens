@@ -134,7 +134,7 @@ export default function Dashboard() {
         .from('user_profiles')
         .select('display_name')
         .eq('id', user!.id)
-        .single()
+        .maybeSingle()
       return data
     },
     enabled: !!user?.id,

@@ -84,7 +84,8 @@ Return ONLY the JSON, no other text.`,
         max_tokens: 200,
       })
 
-      const parsed = JSON.parse(response)
+      const cleanJson = response.replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '').trim()
+      const parsed = JSON.parse(cleanJson)
       const suggestedA = (parsed.antecedents ?? []) as string[]
       const suggestedB = (parsed.behaviours ?? []) as string[]
       const suggestedC = (parsed.consequences ?? []) as string[]

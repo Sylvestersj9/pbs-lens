@@ -7,14 +7,26 @@ export function useAuth() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error && error.message?.includes('Refresh Token')) {
+        supabase.auth.signOut()
+        setUser(null)
+      } else {
+        setUser(session?.user ?? null)
+      }
       setLoading(false)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null)
+      (event, session) => {
+        if (event === 'TOKEN_REFRESHED' && !session) {
+          supabase.auth.signOut()
+          setUser(null)
+        } else if (event === 'SIGNED_OUT') {
+          setUser(null)
+        } else {
+          setUser(session?.user ?? null)
+        }
         setLoading(false)
       }
     )

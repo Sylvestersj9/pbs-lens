@@ -140,7 +140,8 @@ export default function PbsPlanTab({ youngPersonId, youngPersonInitials }: { you
         max_tokens: 2000,
       })
 
-      const parsed = JSON.parse(result)
+      const cleanJson = result.replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '').trim()
+      const parsed = JSON.parse(cleanJson)
       setSlowTriggers(parsed.slow_triggers || '')
       setFastTriggers(parsed.fast_triggers || '')
       if (Array.isArray(parsed.behaviour_functions)) setBehaviourFunctions(parsed.behaviour_functions)
