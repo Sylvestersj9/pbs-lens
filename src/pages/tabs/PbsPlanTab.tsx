@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { usePbsPlan, useUpsertPbsPlan } from '@/hooks/usePbsPlan'
 import { useIncidents } from '@/hooks/useIncidents'
+import { useReviewPeriods } from '@/hooks/useReviewPeriods'
 import { getCodeLabel, ANTECEDENT_CODES, BEHAVIOUR_CODES, CONSEQUENCE_CODES } from '@/lib/codeLists'
 import { callClaude } from '@/lib/claude'
 import { exportPbsPlanPdf } from '@/lib/pdf'
@@ -13,6 +14,7 @@ import type { BehaviourFunction, ProtectiveFactor } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import FbaSummary from '@/components/FbaSummary'
 import {
   AlertDialog,
   AlertDialogContent,
@@ -25,7 +27,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import ExpandableTextarea from '@/components/ExpandableTextarea'
 import AiLoadingIndicator from '@/components/AiLoadingIndicator'
-import { Download, Sparkles, ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react'
+import { Download, Sparkles, ChevronDown, ChevronRight, Plus, Trash2, ClipboardList } from 'lucide-react'
 import { toast } from 'sonner'
 
 function CollapsibleSection({ title, open, onToggle, children, badge }: { title: string; open: boolean; onToggle: () => void; children: React.ReactNode; badge?: string }) {
@@ -59,6 +61,7 @@ export default function PbsPlanTab({ youngPersonId, youngPersonInitials }: { you
   const { user } = useAuth()
   const { data: plan, isLoading } = usePbsPlan(youngPersonId)
   const { data: incidents } = useIncidents(youngPersonId)
+  const { data: reviewPeriods = [] } = useReviewPeriods(youngPersonId)
   const upsert = useUpsertPbsPlan()
 
   const { data: profile } = useQuery({
@@ -77,6 +80,7 @@ export default function PbsPlanTab({ youngPersonId, youngPersonInitials }: { you
   const [openSection, setOpenSection] = useState(0)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [populating, setPopulating] = useState(false)
+  const [fbaOpen, setFbaOpen] = useState(false)
 
   // Form state
   const [enjoys, setEnjoys] = useState('')
@@ -233,6 +237,15 @@ export default function PbsPlanTab({ youngPersonId, youngPersonInitials }: { you
               Populate from incidents
             </Button>
           )}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!incidents || incidents.length === 0}
+            onClick={() => setFbaOpen(true)}
+          >
+            <ClipboardList className="h-4 w-4 mr-1" />
+            View FBA Summary
+          </Button>
           <Button variant="outline" size="sm" onClick={handleExport}>
             <Download className="h-4 w-4 mr-1" />
             Export PDF
@@ -353,6 +366,16 @@ export default function PbsPlanTab({ youngPersonId, youngPersonInitials }: { you
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* FBA Summary */}
+      <FbaSummary
+        open={fbaOpen}
+        onClose={() => setFbaOpen(false)}
+        incidents={incidents || []}
+        reviewPeriods={reviewPeriods}
+        youngPersonInitials={youngPersonInitials}
+        organisation={profile?.organisation ?? undefined}
+      />
     </div>
   )
 }
