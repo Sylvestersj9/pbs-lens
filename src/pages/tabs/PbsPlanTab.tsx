@@ -96,12 +96,12 @@ export default function PbsPlanTab({ youngPersonId, youngPersonInitials }: { you
   // AI draft badges
   const [aiSections, setAiSections] = useState<Set<string>>(new Set())
 
-  // Ref guard to populate form only once
-  const populatedRef = useRef(false)
+  // Ref guard to populate form only once per young person
+  const populatedRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (plan && !populatedRef.current) {
-      populatedRef.current = true
+    if (plan && populatedRef.current !== youngPersonId) {
+      populatedRef.current = youngPersonId
       setEnjoys(plan.enjoys || '')
       setImportantTo(plan.important_to || '')
       setGoodAt(plan.good_at || '')
@@ -175,19 +175,25 @@ export default function PbsPlanTab({ youngPersonId, youngPersonInitials }: { you
   }
 
   const handleExport = () => {
-    exportPbsPlanPdf(youngPersonInitials, {
-      enjoys,
-      important_to: importantTo,
-      good_at: goodAt,
-      helps_relax: helpsRelax,
-      personal_risk_factors: personalRisk,
-      environmental_risk_factors: environmentalRisk,
-      slow_triggers: slowTriggers,
-      fast_triggers: fastTriggers,
-      proactive_strategies: proactive,
-      active_strategies: active,
-      reactive_strategies: reactive,
-    }, profile?.organisation ?? undefined)
+    try {
+      exportPbsPlanPdf(youngPersonInitials, {
+        enjoys,
+        important_to: importantTo,
+        good_at: goodAt,
+        helps_relax: helpsRelax,
+        personal_risk_factors: personalRisk,
+        environmental_risk_factors: environmentalRisk,
+        slow_triggers: slowTriggers,
+        fast_triggers: fastTriggers,
+        behaviour_functions: behaviourFunctions,
+        protective_factors: protectiveFactors,
+        proactive_strategies: proactive,
+        active_strategies: active,
+        reactive_strategies: reactive,
+      }, profile?.organisation ?? undefined)
+    } catch {
+      toast.error('Failed to export PDF')
+    }
   }
 
   const toggleSection = (idx: number) => setOpenSection(prev => prev === idx ? -1 : idx)

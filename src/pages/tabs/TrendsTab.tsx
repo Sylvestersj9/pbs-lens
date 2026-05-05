@@ -36,15 +36,16 @@ function FreqTableDisplay({ title, data }: { title: string; data: { label: strin
 }
 
 export default function TrendsTab({ youngPersonId }: { youngPersonId: string }) {
-  const today = format(new Date(), 'yyyy-MM-dd')
-  const threeMonthsAgo = format(subMonths(new Date(), 3), 'yyyy-MM-dd')
+  const now = new Date()
+  const today = format(now, 'yyyy-MM-dd')
+  const threeMonthsAgo = format(subMonths(now, 3), 'yyyy-MM-dd')
 
   const [dateFrom, setDateFrom] = useState(threeMonthsAgo)
   const [dateTo, setDateTo] = useState(today)
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null)
   const [showBreakdown, setShowBreakdown] = useState(false)
 
-  const { data: incidents = [] } = useIncidents(youngPersonId)
+  const { data: incidents = [], isLoading } = useIncidents(youngPersonId)
   const { data: periods = [] } = useReviewPeriods(youngPersonId)
   const createPeriod = useCreateReviewPeriod()
   const deletePeriod = useDeleteReviewPeriod()
@@ -145,6 +146,10 @@ export default function TrendsTab({ youngPersonId }: { youngPersonId: string }) 
       consequences: toFreqList(conMap, CONSEQUENCE_CODES),
     }
   }, [filtered])
+
+  if (isLoading) {
+    return <div className="p-4 text-muted-foreground">Loading trends...</div>
+  }
 
   return (
     <div className="space-y-6">

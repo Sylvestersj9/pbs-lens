@@ -24,9 +24,10 @@ export function useCreateReviewPeriod() {
   return useMutation({
     mutationFn: async (period: Omit<ReviewPeriod, 'id' | 'user_id' | 'created_at'>) => {
       const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
       const { data, error } = await supabase
         .from('review_periods')
-        .insert({ ...period, user_id: user!.id })
+        .insert({ ...period, user_id: user.id })
         .select()
         .single()
       if (error) throw error

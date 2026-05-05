@@ -24,7 +24,8 @@ export function useUpsertPbsPlan() {
   return useMutation({
     mutationFn: async (plan: Omit<PbsPlan, 'id' | 'user_id' | 'updated_at'> & { id?: string }) => {
       const { data: { user } } = await supabase.auth.getUser()
-      const payload = { ...plan, user_id: user!.id, updated_at: new Date().toISOString() }
+      if (!user) throw new Error('Not authenticated')
+      const payload = { ...plan, user_id: user.id, updated_at: new Date().toISOString() }
 
       if (plan.id) {
         const { error } = await supabase

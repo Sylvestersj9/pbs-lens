@@ -22,6 +22,9 @@ export default function ReviewPeriodSelector({ periods, selectedId, onSelect, on
 
   const handleAdd = () => {
     if (label && dateFrom && dateTo) {
+      if (dateFrom > dateTo) {
+        return // Start date must be before end date
+      }
       onAdd(label, dateFrom, dateTo)
       setAdding(false)
       setLabel('')
@@ -70,7 +73,7 @@ export default function ReviewPeriodSelector({ periods, selectedId, onSelect, on
           </Button>
         )}
         {selectedId && (
-          <Button variant="ghost" size="sm" onClick={() => onDelete(selectedId)} className="text-danger">
+          <Button variant="ghost" size="sm" onClick={() => onDelete(selectedId)} className="text-destructive">
             <Trash2 className="h-4 w-4 mr-1" /> Delete
           </Button>
         )}
@@ -83,8 +86,11 @@ export default function ReviewPeriodSelector({ periods, selectedId, onSelect, on
             <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
             <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
           </div>
+          {dateFrom && dateTo && dateFrom > dateTo && (
+            <p className="text-xs text-destructive">Start date must be before end date</p>
+          )}
           <div className="flex gap-2">
-            <Button size="sm" onClick={handleAdd}>Save</Button>
+            <Button size="sm" onClick={handleAdd} disabled={!label || !dateFrom || !dateTo || dateFrom > dateTo}>Save</Button>
             <Button size="sm" variant="ghost" onClick={() => setAdding(false)}>Cancel</Button>
           </div>
         </div>

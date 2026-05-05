@@ -20,5 +20,8 @@ export async function callClaude(request: ClaudeRequest): Promise<string> {
   const data = response.data
   if (data.error) throw new Error(data.error.message || data.error)
 
-  return data.content[0].text
+  const text = data?.content?.[0]?.text
+  if (!text) throw new Error('Unexpected response format from AI')
+
+  return text
 }

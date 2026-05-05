@@ -2,12 +2,21 @@ import { Outlet } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { toast } from 'sonner'
 
 const NORA_EMAIL = 'nora-edwards@outlook.com'
 
 export default function Layout() {
   const { user, signOut } = useAuth()
   const isNora = user?.email === NORA_EMAIL
+
+  const handleSignOut = async () => {
+    try {
+      await signOut()
+    } catch {
+      toast.error('Failed to sign out. Please try again.')
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -19,7 +28,7 @@ export default function Layout() {
         )}
         <div className="flex items-center gap-3">
           <span className="text-sm text-muted-foreground">{user?.email}</span>
-          <Button variant="ghost" size="icon" onClick={signOut}>
+          <Button variant="ghost" size="icon" onClick={handleSignOut}>
             <LogOut className="h-4 w-4" />
           </Button>
         </div>

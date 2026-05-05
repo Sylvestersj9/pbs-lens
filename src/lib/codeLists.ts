@@ -65,5 +65,7 @@ export function getTimeBand(time: string): string {
 
 export function getDayOfWeek(date: string): string {
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-  return days[new Date(date).getDay()]
+  // Parse yyyy-MM-dd as local date to avoid UTC timezone shift
+  const [y, m, d] = date.split('-').map(Number)
+  return days[new Date(y, m - 1, d).getDay()]
 }

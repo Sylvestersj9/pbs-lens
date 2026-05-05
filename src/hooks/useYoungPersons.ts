@@ -38,9 +38,10 @@ export function useCreateYoungPerson() {
   return useMutation({
     mutationFn: async (yp: Omit<YoungPerson, 'id' | 'user_id' | 'created_at' | 'archived'>) => {
       const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
       const { data, error } = await supabase
         .from('young_persons')
-        .insert({ ...yp, user_id: user!.id })
+        .insert({ ...yp, user_id: user.id })
         .select()
         .single()
       if (error) throw error

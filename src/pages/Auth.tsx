@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Navigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,8 +16,7 @@ export default function Auth() {
   const navigate = useNavigate()
 
   if (user) {
-    navigate('/', { replace: true })
-    return null
+    return <Navigate to="/" replace />
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,6 +33,15 @@ export default function Auth() {
       toast.success('Check your email for a confirmation link')
     } else {
       navigate('/', { replace: true })
+    }
+  }
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const { error } = await signInWithGoogle()
+      if (error) toast.error(error.message)
+    } catch {
+      toast.error('Failed to start Google sign-in')
     }
   }
 
@@ -74,7 +82,7 @@ export default function Auth() {
             </Button>
           </form>
           <div className="mt-4">
-            <Button variant="outline" className="w-full" onClick={signInWithGoogle}>
+            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>
               Continue with Google
             </Button>
           </div>

@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import Layout from '@/components/Layout'
 import Auth from '@/pages/Auth'
@@ -21,6 +21,7 @@ export default function App() {
           <Route path="/admin" element={<Admin />} />
         </Route>
       </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }

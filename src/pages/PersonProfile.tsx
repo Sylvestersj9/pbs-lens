@@ -69,6 +69,8 @@ export default function PersonProfile() {
     setEditOpen(true)
   }
 
+  const isSaving = updateYp.isPending
+
   const saveEdit = () => {
     updateYp.mutate(
       {
@@ -84,6 +86,10 @@ export default function PersonProfile() {
 
   const handleArchive = () => {
     updateYp.mutate({ id: yp.id, archived: true }, { onSuccess: () => navigate('/') })
+  }
+
+  const handleRestore = () => {
+    updateYp.mutate({ id: yp.id, archived: false })
   }
 
   const handleTabChange = (value: string | number | null) => {
@@ -117,23 +123,29 @@ export default function PersonProfile() {
         <Button variant="outline" size="sm" onClick={openEdit} className="gap-1">
           <Pencil className="h-3.5 w-3.5" /> Edit
         </Button>
-        <AlertDialog>
-          <AlertDialogTrigger render={<Button variant="outline" size="sm" className="gap-1" />}>
-            <Archive className="h-3.5 w-3.5" /> Archive
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Archive {yp.initials}?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will hide them from your dashboard. You can restore later.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleArchive}>Archive</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        {yp.archived ? (
+          <Button variant="outline" size="sm" onClick={handleRestore} disabled={isSaving} className="gap-1">
+            <Archive className="h-3.5 w-3.5" /> Restore
+          </Button>
+        ) : (
+          <AlertDialog>
+            <AlertDialogTrigger render={<Button variant="outline" size="sm" className="gap-1" />}>
+              <Archive className="h-3.5 w-3.5" /> Archive
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Archive {yp.initials}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will hide them from your dashboard. You can restore from their profile.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleArchive}>Archive</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
         <Button variant="outline" size="sm" onClick={() => setNotesOpen(true)} className="gap-1">
           <StickyNote className="h-3.5 w-3.5" /> Notes
         </Button>
@@ -205,8 +217,8 @@ export default function PersonProfile() {
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={saveEdit} disabled={!editInitials.trim() || !editHomeName.trim()}>
-              Save
+            <Button onClick={saveEdit} disabled={!editInitials.trim() || !editHomeName.trim() || isSaving}>
+              {isSaving ? 'Saving...' : 'Save'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -41,9 +41,10 @@ export function useCreateIncident() {
   return useMutation({
     mutationFn: async (incident: Omit<Incident, 'id' | 'user_id' | 'created_at'>) => {
       const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
       const { data, error } = await supabase
         .from('incidents')
-        .insert({ ...incident, user_id: user!.id })
+        .insert({ ...incident, user_id: user.id })
         .select()
         .single()
       if (error) throw error
@@ -51,6 +52,8 @@ export function useCreateIncident() {
     },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['incidents', data.young_person_id] })
+      qc.invalidateQueries({ queryKey: ['incidents-month'] })
+      qc.invalidateQueries({ queryKey: ['incidents-all-dates'] })
       toast.success('Incident logged')
     },
     onError: (e) => toast.error(e.message),
@@ -72,6 +75,8 @@ export function useUpdateIncident() {
     },
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['incidents', data.young_person_id] })
+      qc.invalidateQueries({ queryKey: ['incidents-month'] })
+      qc.invalidateQueries({ queryKey: ['incidents-all-dates'] })
       toast.success('Incident updated')
     },
     onError: (e) => toast.error(e.message),
@@ -82,6 +87,7 @@ export function useDeleteIncidents() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({ ids, youngPersonId }: { ids: string[]; youngPersonId: string }) => {
+      if (ids.length === 0) return youngPersonId
       const { error } = await supabase
         .from('incidents')
         .delete()
@@ -91,6 +97,8 @@ export function useDeleteIncidents() {
     },
     onSuccess: (youngPersonId) => {
       qc.invalidateQueries({ queryKey: ['incidents', youngPersonId] })
+      qc.invalidateQueries({ queryKey: ['incidents-month'] })
+      qc.invalidateQueries({ queryKey: ['incidents-all-dates'] })
       toast.success('Deleted')
     },
     onError: (e) => toast.error(e.message),

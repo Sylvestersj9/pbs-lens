@@ -24,9 +24,10 @@ export function useSaveAnalysis() {
   return useMutation({
     mutationFn: async (analysis: Omit<Analysis, 'id' | 'user_id' | 'created_at'>) => {
       const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Not authenticated')
       const { data, error } = await supabase
         .from('analyses')
-        .insert({ ...analysis, user_id: user!.id })
+        .insert({ ...analysis, user_id: user.id })
         .select()
         .single()
       if (error) throw error

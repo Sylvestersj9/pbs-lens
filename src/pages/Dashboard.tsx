@@ -211,13 +211,21 @@ export default function Dashboard() {
 
       {/* Card grid or empty state */}
       {filtered.length === 0 ? (
-        <EmptyState
-          icon={Users}
-          title="No young people yet"
-          description="Add your first young person to start tracking incidents and behaviours."
-          actionLabel="+ Add Young Person"
-          onAction={() => navigate('/add')}
-        />
+        search.trim() ? (
+          <EmptyState
+            icon={Users}
+            title="No matches"
+            description={`No young people matching "${search}". Try a different search.`}
+          />
+        ) : (
+          <EmptyState
+            icon={Users}
+            title="No young people yet"
+            description="Add your first young person to start tracking incidents and behaviours."
+            actionLabel="+ Add Young Person"
+            onAction={() => navigate('/add')}
+          />
+        )
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filtered.map((yp, index) => {
