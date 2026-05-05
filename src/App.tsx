@@ -6,6 +6,7 @@ import Dashboard from '@/pages/Dashboard'
 import AddYoungPerson from '@/pages/AddYoungPerson'
 import PersonProfile from '@/pages/PersonProfile'
 import LogIncident from '@/pages/LogIncident'
+import Admin from '@/pages/Admin'
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="/add" element={<AddYoungPerson />} />
           <Route path="/person/:id" element={<PersonProfile />} />
           <Route path="/person/:id/log" element={<LogIncident />} />
+          <Route path="/admin" element={<Admin />} />
         </Route>
       </Route>
     </Routes>
