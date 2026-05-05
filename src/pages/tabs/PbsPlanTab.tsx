@@ -135,7 +135,7 @@ export default function PbsPlanTab({ youngPersonId, youngPersonInitials }: { you
 
       const result = await callClaude({
         model: 'claude-sonnet-4-20250514',
-        system: 'You are a PBS specialist. Analyse the incidents and return JSON only: {"slow_triggers":"text","fast_triggers":"text","behaviour_functions":[{"name":"","description":"","primary_function":"","secondary_function":""}],"protective_factors":[{"title":"","description":"","how_to_use":""}]}',
+        system: 'You are a PBS specialist. Analyse the incidents and return JSON only: {"slow_triggers":"text","fast_triggers":"text","behaviour_functions":[{"name":"","description":"","primary_function":"","secondary_function":""}],"protective_factors":[{"title":"","description":"","how_to_use":""}]}\n\nAdditional behaviour codes that may be present: VA (Verbal Aggression) — communicative distress expressed verbally; interpret as an expression of overwhelm, not deliberate aggression. RT (Rough and Tumble) — physical peer contact without aggressive intent. SM (Smearing) — complex behaviour with multiple possible functions including sensory seeking, communication of distress, or response to environmental stressors.',
         messages: [{ role: 'user', content: JSON.stringify(incidentSummaries) }],
         max_tokens: 2000,
       })

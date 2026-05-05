@@ -24,6 +24,9 @@ export const BEHAVIOUR_CODES: CodeDefinition[] = [
   { code: 'PD', label: 'Property Damage', description: 'Breaking, snapping, tearing or otherwise damaging property' },
   { code: 'AB', label: 'Absconding', description: 'Running away from staff or premises; climbing out of secure areas; opportunistic flight' },
   { code: 'SB', label: 'Sexualised Behaviour', description: 'Behaviour of a sexual nature including public undressing or self-exposure' },
+  { code: 'VA', label: 'Verbal Aggression', description: 'Communicating in a challenging way including shouting, screaming, threatening language, whining, or crying without tears directed at others' },
+  { code: 'RT', label: 'Rough and Tumble', description: 'Physical contact between peers with no intent to harm — wrestling, play fighting, physical play that may escalate' },
+  { code: 'SM', label: 'Smearing', description: 'Deliberate spreading of faeces or urine on surfaces including walls, floors, furniture, or own body' },
 ]
 
 export const CONSEQUENCE_CODES: CodeDefinition[] = [
