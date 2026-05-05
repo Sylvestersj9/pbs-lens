@@ -287,19 +287,24 @@ export default function AnalysisTab({ youngPersonId, youngPersonInitials }: { yo
 
       {/* Reg 44 output */}
       {reg44Summary && (
-        <div className="space-y-4 border border-border rounded-lg p-4">
-          <div className="flex items-start justify-between">
-            <h3 className="font-semibold">Reg 44 Summary</h3>
-            <Button variant="ghost" size="sm" onClick={() => handleCopy(reg44Summary)}>
-              <Copy className="h-4 w-4" />
-            </Button>
+        <div className="border border-border rounded-lg bg-card shadow-sm">
+          <div className="p-6 pb-4 border-b border-border">
+            <h3 className="text-lg font-bold">Reg 44 Incident Summary</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              {youngPersonInitials} · {format(new Date(dateFrom), 'dd MMM yyyy')} – {format(new Date(dateTo), 'dd MMM yyyy')}
+            </p>
           </div>
-          <div className="prose prose-sm dark:prose-invert max-w-none">
+          <div className="p-6 prose prose-sm dark:prose-invert max-w-none prose-headings:text-base prose-headings:font-bold prose-headings:border-b prose-headings:border-border prose-headings:pb-2 prose-headings:mb-3 prose-headings:mt-6 first:prose-headings:mt-0 prose-li:my-1 prose-ul:my-2 prose-ol:my-2 prose-p:my-2">
             <ReactMarkdown>{reg44Summary}</ReactMarkdown>
           </div>
-          <p className="text-xs text-muted-foreground italic">
-            Formatted for Reg 44 reporting — review before use
-          </p>
+          <div className="px-6 pb-4 flex items-center justify-between">
+            <p className="text-xs text-muted-foreground italic">
+              Formatted for Reg 44 reporting — review before use
+            </p>
+            <Button variant="outline" size="sm" onClick={() => handleCopy(reg44Summary)}>
+              <Copy className="h-4 w-4 mr-1" /> Copy
+            </Button>
+          </div>
         </div>
       )}
     </div>

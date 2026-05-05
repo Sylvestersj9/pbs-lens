@@ -126,13 +126,21 @@ export default function Dashboard() {
     return list
   }, [youngPersons, showArchived, search, sort, incidentCountsByYP, lastIncidentByYP])
 
-  // Extract first name from email
-  const firstName = useMemo(() => {
-    if (!user?.email) return 'Your'
-    const local = user.email.split('@')[0]
-    const name = local.replace(/[._-]/g, ' ').split(' ')[0]
-    return name.charAt(0).toUpperCase() + name.slice(1)
-  }, [user])
+  // Get display name from user_profiles, fallback to "Your"
+  const { data: profile } = useQuery({
+    queryKey: ['user-profile', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('user_profiles')
+        .select('display_name')
+        .eq('id', user!.id)
+        .single()
+      return data
+    },
+    enabled: !!user?.id,
+  })
+
+  const displayName = profile?.display_name || 'Your'
 
   if (isLoading) {
     return (
@@ -144,7 +152,7 @@ export default function Dashboard() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }} className="space-y-6 pb-24">
-      <h1 className="text-2xl font-bold">{firstName}&apos;s Dashboard</h1>
+      <h1 className="text-2xl font-bold">{displayName}&apos;s Dashboard</h1>
 
       {/* Stats bar */}
       <div className="grid grid-cols-3 gap-4">
