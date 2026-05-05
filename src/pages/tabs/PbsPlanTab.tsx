@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useQuery } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { usePbsPlan, useUpsertPbsPlan } from '@/hooks/usePbsPlan'
 import { useIncidents } from '@/hooks/useIncidents'
 import { getCodeLabel, ANTECEDENT_CODES, BEHAVIOUR_CODES, CONSEQUENCE_CODES } from '@/lib/codeLists'
 import { callClaude } from '@/lib/claude'
 import { exportPbsPlanPdf } from '@/lib/pdf'
+import { useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/lib/supabase'
 import type { BehaviourFunction, ProtectiveFactor } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -53,9 +56,23 @@ function CollapsibleSection({ title, open, onToggle, children, badge }: { title:
 }
 
 export default function PbsPlanTab({ youngPersonId, youngPersonInitials }: { youngPersonId: string; youngPersonInitials: string }) {
+  const { user } = useAuth()
   const { data: plan, isLoading } = usePbsPlan(youngPersonId)
   const { data: incidents } = useIncidents(youngPersonId)
   const upsert = useUpsertPbsPlan()
+
+  const { data: profile } = useQuery({
+    queryKey: ['user-profile-org', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('user_profiles')
+        .select('organisation')
+        .eq('id', user!.id)
+        .limit(1)
+      return data?.[0] ?? null
+    },
+    enabled: !!user?.id,
+  })
 
   const [openSection, setOpenSection] = useState(0)
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -170,7 +187,7 @@ export default function PbsPlanTab({ youngPersonId, youngPersonInitials }: { you
       proactive_strategies: proactive,
       active_strategies: active,
       reactive_strategies: reactive,
-    })
+    }, profile?.organisation ?? undefined)
   }
 
   const toggleSection = (idx: number) => setOpenSection(prev => prev === idx ? -1 : idx)
