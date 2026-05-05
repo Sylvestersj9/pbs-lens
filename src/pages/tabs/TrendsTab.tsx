@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
-import { subMonths, format } from 'date-fns'
+import { subMonths, format, parseISO, addMonths, startOfMonth } from 'date-fns'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import { useIncidents } from '@/hooks/useIncidents'
 import { useReviewPeriods, useCreateReviewPeriod, useDeleteReviewPeriod } from '@/hooks/useReviewPeriods'
 import { ANTECEDENT_CODES, BEHAVIOUR_CODES, CONSEQUENCE_CODES, getCodeLabel, getTimeBand, getDayOfWeek } from '@/lib/codeLists'
@@ -32,6 +33,109 @@ function FreqTableDisplay({ title, data }: { title: string; data: { label: strin
         ))}
       </div>
     </div>
+  )
+}
+
+function IncidentTrajectoryChart({ incidents, periods }: { incidents: { incident_date: string }[]; periods: ReviewPeriod[] }) {
+  const chartData = useMemo(() => {
+    if (incidents.length === 0) return []
+
+    // Count incidents per calendar month
+    const monthlyCounts: Record<string, number> = {}
+    for (const inc of incidents) {
+      const month = inc.incident_date.slice(0, 7) // YYYY-MM
+      monthlyCounts[month] = (monthlyCounts[month] || 0) + 1
+    }
+
+    // Find min and max months across all incidents
+    const months = Object.keys(monthlyCounts).sort()
+    const firstMonth = startOfMonth(parseISO(months[0] + '-01'))
+    const lastMonth = startOfMonth(parseISO(months[months.length - 1] + '-01'))
+
+    // Fill in all months between first and last (including zeros)
+    const data: { month: string; label: string; count: number }[] = []
+    let current = firstMonth
+    while (current <= lastMonth) {
+      const key = format(current, 'yyyy-MM')
+      data.push({
+        month: key,
+        label: format(current, 'MMM yy'),
+        count: monthlyCounts[key] || 0,
+      })
+      current = addMonths(current, 1)
+    }
+
+    return data
+  }, [incidents])
+
+  // Review period boundary lines (start of each period)
+  const reviewLines = useMemo(() => {
+    return periods
+      .sort((a, b) => a.date_from.localeCompare(b.date_from))
+      .map((p) => {
+        const monthKey = p.date_from.slice(0, 7)
+        // Extract short label like "Review 1" from "Review 1: 20 Jan – 19 May 2025"
+        const shortLabel = p.label.split(':')[0].trim()
+        return { month: monthKey, label: shortLabel }
+      })
+  }, [periods])
+
+  if (chartData.length < 3) return null
+
+  return (
+    <Card>
+      <CardContent className="p-4 space-y-3">
+        <h4 className="font-semibold text-sm">Incident Frequency Over Time</h4>
+        <ResponsiveContainer width="100%" height={240}>
+          <LineChart data={chartData} margin={{ top: 20, right: 12, left: -12, bottom: 4 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 11 }}
+              interval="preserveStartEnd"
+              stroke="hsl(var(--muted-foreground))"
+            />
+            <YAxis
+              allowDecimals={false}
+              tick={{ fontSize: 11 }}
+              stroke="hsl(var(--muted-foreground))"
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: 'hsl(var(--card))',
+                border: '1px solid hsl(var(--border))',
+                borderRadius: '8px',
+                fontSize: 13,
+              }}
+              formatter={(value) => [String(value), 'Incidents']}
+              labelFormatter={(label) => String(label)}
+            />
+            {reviewLines.map((rl) => {
+              const idx = chartData.findIndex((d) => d.month === rl.month)
+              if (idx === -1) return null
+              return (
+                <ReferenceLine
+                  key={rl.month}
+                  x={chartData[idx].label}
+                  stroke="hsl(var(--muted-foreground))"
+                  strokeDasharray="4 4"
+                  strokeOpacity={0.5}
+                  label={{ value: rl.label, position: 'top', fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                />
+              )
+            })}
+            <Line
+              type="monotone"
+              dataKey="count"
+              stroke="hsl(var(--primary))"
+              strokeWidth={2}
+              dot={{ r: 3, fill: 'hsl(var(--primary))' }}
+              activeDot={{ r: 5 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -171,6 +275,9 @@ export default function TrendsTab({ youngPersonId }: { youngPersonId: string }) 
           <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
         </div>
       </div>
+
+      {/* Trajectory chart — always shows full dataset regardless of review period filter */}
+      <IncidentTrajectoryChart incidents={incidents} periods={periods} />
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3">
