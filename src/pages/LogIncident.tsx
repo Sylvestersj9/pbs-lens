@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import CodePillSelector from '@/components/CodePillSelector'
 import ExpandableTextarea from '@/components/ExpandableTextarea'
+import AiLoadingIndicator from '@/components/AiLoadingIndicator'
 import { Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -199,17 +200,19 @@ Return ONLY the JSON, no other text.`,
               className="w-32"
             />
           </div>
-          {narrative.length >= 50 && (
+          {narrative.length >= 50 && !suggesting && (
             <Button
               type="button"
               variant="outline"
               onClick={handleSuggest}
-              disabled={suggesting}
               className="gap-2"
             >
               <Sparkles className="h-4 w-4" />
-              {suggesting ? 'Suggesting...' : 'Suggest codes from narrative'}
+              Suggest codes from narrative
             </Button>
+          )}
+          {suggesting && (
+            <AiLoadingIndicator label="Analysing narrative..." estimateSeconds={5} />
           )}
         </CardContent>
       </Card>

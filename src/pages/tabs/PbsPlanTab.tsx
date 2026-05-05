@@ -21,6 +21,7 @@ import {
   AlertDialogCancel,
 } from '@/components/ui/alert-dialog'
 import ExpandableTextarea from '@/components/ExpandableTextarea'
+import AiLoadingIndicator from '@/components/AiLoadingIndicator'
 import { Download, Sparkles, ChevronDown, ChevronRight, Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -198,21 +199,27 @@ export default function PbsPlanTab({ youngPersonId, youngPersonInitials }: { you
           {plan?.updated_at ? `Last updated: ${format(new Date(plan.updated_at), 'dd MMM yyyy HH:mm')}` : 'No plan saved yet'}
         </span>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!incidents || incidents.length < 3 || populating}
-            onClick={() => setConfirmOpen(true)}
-          >
-            <Sparkles className="h-4 w-4 mr-1" />
-            {populating ? 'Populating...' : 'Populate from incidents'}
-          </Button>
+          {!populating && (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!incidents || incidents.length < 3}
+              onClick={() => setConfirmOpen(true)}
+            >
+              <Sparkles className="h-4 w-4 mr-1" />
+              Populate from incidents
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={handleExport}>
             <Download className="h-4 w-4 mr-1" />
             Export PDF
           </Button>
         </div>
       </div>
+
+      {populating && (
+        <AiLoadingIndicator label="Analysing incidents for PBS plan..." estimateSeconds={20} />
+      )}
 
       {/* Sections */}
       <div className="space-y-2">

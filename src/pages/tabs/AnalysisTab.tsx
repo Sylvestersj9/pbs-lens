@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { subMonths, format } from 'date-fns'
 import ReactMarkdown from 'react-markdown'
 import { useNavigate } from 'react-router-dom'
-import { FileText, Copy, Download, Sparkles } from 'lucide-react'
+import { Copy, Download, FileText, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { useIncidents } from '@/hooks/useIncidents'
@@ -13,6 +13,7 @@ import { callClaude } from '@/lib/claude'
 import { exportAnalysisPdf } from '@/lib/pdf'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import AiLoadingIndicator from '@/components/AiLoadingIndicator'
 import ReviewPeriodSelector from '@/components/ReviewPeriodSelector'
 import type { ReviewPeriod } from '@/lib/types'
 import type { Incident } from '@/lib/types'
@@ -55,7 +56,8 @@ export default function AnalysisTab({ youngPersonId, youngPersonInitials }: { yo
   const [selectedPeriodId, setSelectedPeriodId] = useState<string | null>(null)
 
   // Generation state
-  const [generating, setGenerating] = useState(false)
+  const [generatingDraft, setGeneratingDraft] = useState(false)
+  const [generatingReg44, setGeneratingReg44] = useState(false)
   const [draftAnalysis, setDraftAnalysis] = useState<string | null>(null)
   const [reg44Summary, setReg44Summary] = useState<string | null>(null)
   const [showFullAnalysis, setShowFullAnalysis] = useState(false)
@@ -98,7 +100,7 @@ export default function AnalysisTab({ youngPersonId, youngPersonInitials }: { yo
 
   // Generate Draft Analysis
   const handleGenerateDraft = async () => {
-    setGenerating(true)
+    setGeneratingDraft(true)
     setDraftAnalysis(null)
     try {
       const summary = buildIncidentSummary(filteredIncidents)
@@ -125,13 +127,13 @@ export default function AnalysisTab({ youngPersonId, youngPersonInitials }: { yo
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to generate analysis')
     } finally {
-      setGenerating(false)
+      setGeneratingDraft(false)
     }
   }
 
   // Generate Reg 44 Summary
   const handleGenerateReg44 = async () => {
-    setGenerating(true)
+    setGeneratingReg44(true)
     setReg44Summary(null)
     try {
       const summary = buildIncidentSummary(filteredIncidents)
@@ -150,7 +152,7 @@ export default function AnalysisTab({ youngPersonId, youngPersonInitials }: { yo
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Failed to generate Reg 44 summary')
     } finally {
-      setGenerating(false)
+      setGeneratingReg44(false)
     }
   }
 
@@ -232,16 +234,24 @@ export default function AnalysisTab({ youngPersonId, youngPersonInitials }: { yo
       )}
 
       {/* Generate buttons */}
-      {incidentCount >= 3 && (
+      {incidentCount >= 3 && !generatingDraft && !generatingReg44 && (
         <div className="flex gap-3">
-          <Button onClick={handleGenerateDraft} disabled={generating}>
+          <Button onClick={handleGenerateDraft}>
             <Sparkles className="h-4 w-4 mr-2" />
             Generate Draft Analysis
           </Button>
-          <Button variant="outline" onClick={handleGenerateReg44} disabled={generating}>
+          <Button variant="outline" onClick={handleGenerateReg44}>
             Generate Reg 44 Summary
           </Button>
         </div>
+      )}
+
+      {generatingDraft && (
+        <AiLoadingIndicator label="Generating clinical analysis..." estimateSeconds={30} />
+      )}
+
+      {generatingReg44 && (
+        <AiLoadingIndicator label="Generating Reg 44 summary..." estimateSeconds={15} />
       )}
 
       {/* Draft Analysis output */}
