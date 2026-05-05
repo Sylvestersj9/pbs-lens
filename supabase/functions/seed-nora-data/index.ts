@@ -244,6 +244,70 @@ Deno.serve(async (req) => {
         reactive_strategies: 'Prioritise physical safety without adding restriction where possible. Use help-hugs and caring-C techniques only where immediate physical risk requires. Guide to swing or garden as primary de-escalation pathway. Offer empathy before and during redirection — never distraction without empathy first. Allow MR personal time in bedroom to self-regulate when he initiates it. Post-incident repair using PACE. Document fully and review in supervision.',
       })
 
+    // Insert Young Person 4: NOG (if not already present)
+    const { data: existingNog } = await supabaseAdmin
+      .from('young_persons')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('initials', 'NOG')
+      .limit(1)
+
+    let nogId: string
+    if (existingNog && existingNog.length > 0) {
+      nogId = existingNog[0].id
+    } else {
+      const { data: nog } = await supabaseAdmin
+        .from('young_persons')
+        .insert({
+          user_id: userId,
+          initials: 'NOG',
+          home_name: 'Willow Lodge',
+          date_of_admission: '2025-03-10',
+          notes: 'Autism Spectrum Disorder and Global Developmental Delay. Significant speech and language delay. Chronic constipation. Continence delays. High movement needs. Emerging Makaton user. Calls staff mummy — fragile attachment. Dad visits regularly.',
+        })
+        .select('id')
+        .single()
+      nogId = nog!.id
+    }
+
+    // Insert PBS Plan for NOG (skip if already exists)
+    const { data: existingNogPlan } = await supabaseAdmin
+      .from('pbs_plans')
+      .select('id')
+      .eq('young_person_id', nogId)
+      .limit(1)
+
+    if (!existingNogPlan || existingNogPlan.length === 0) {
+      await supabaseAdmin
+        .from('pbs_plans')
+        .insert({
+          user_id: userId,
+          young_person_id: nogId,
+          enjoys: 'Playing with trains and cars especially watching the wheels spin at eye level. Movement-based games — chasing, ready steady go. Peek-a-boo and anticipation games. Music, nursery rhymes and dancing. Looking at books especially interactive or repetitive ones. Outdoor play — bikes, tractor, running space. Physical play with trusted adults. Bowling and park visits with his dad. Sensory play involving movement. Being around familiar adults in structured routines.',
+          important_to: 'Predictable routine. Knowing what is happening next — visual preparation. Immediate response to needs especially hunger, thirst and toileting. Access to preferred items — tablet, trains, favourite toys. Physical closeness and reassurance from trusted adults. 1:1 attention and co-regulation. Seeing his dad. Familiar adults being present. Clear simple communication. Feeling understood.',
+          good_at: 'Anticipation during interactive games. Showing excitement through eye contact and glancing. Building emerging shared attention. Learning and using some Makaton. Responding to go cues. Physical coordination during play. Demonstrating affection. Seeking comfort when distressed. Beginning to apologise after incidents — emerging repair skills. Engaging positively in small structured learning environments.',
+          helps_relax: 'Calm predictable adult presence. Change of face — fresh adult intervention. Being taken to his bedroom or quiet space. Hugging or physical reassurance when regulated. Singing and gentle rhythmic interaction. Outdoor movement. One-to-one play. Visual supports that reduce confusion. Clear Now/Next communication. Familiar toys. Reduced noise and sensory input.',
+          personal_risk_factors: 'Autism Spectrum Disorder and Global Developmental Delay. Significant speech and language delay — limited expressive and receptive language. Delayed cognitive processing. Sensory processing differences — auditory, tactile, environmental sensitivity. High movement needs and sensory seeking behaviours. Chronic constipation contributing to discomfort and behavioural escalation. Continence delays — pad use, distress during intimate care. Sleep disruption. Limited interoceptive awareness. Reduced impulse control. Early life instability and neglect concerns. Disrupted caregiving relationships. Limited ability to express needs verbally — behaviour used as communication. High dependency on adult co-regulation. Emotional regulation skills below chronological age. Emerging but fragile attachment patterns — calls staff mummy. Vulnerability in peer environments.',
+          environmental_risk_factors: 'Busy noisy environments with multiple children and overlapping sensory input. Peer conflict or witnessing peers dysregulated. Unfamiliar adults or staff changes. Absence of preferred adult. Inconsistent communication approaches. Lack of visual structure. Environments where preferred items are visible but not accessible. Mealtime environments with waiting expectations. Transitions between rooms without preparation. Car journeys — restricted movement plus unpredictability. Personal care routines — pad changes are a consistently high-risk context.',
+          slow_triggers: 'Constipation or physical discomfort. Poor sleep or night waking. Hunger or delayed food access. Accumulated waiting demands. Repeated exposure to no or later language. Reduced 1:1 adult attention. Emotional anticipation around contact days. Multiple small transitions across a short time period. High sensory load throughout the day. Change in routine without preparation.',
+          fast_triggers: 'Being told no, wait, or later. Tablet or laptop removed or restricted. Prompt for pad change or intimate care. Being physically redirected without warning. Being asked to leave a peer\'s bedroom. Preferred item visible but not accessible. Adult blocking access to kitchen. Sudden change in adult leading activity. Loud unexpected noise. Peer invading space. Multi-step instruction delivered verbally. Physical discomfort — too hot or cold.',
+          behaviour_functions: [
+            { name: 'Physical Aggression Toward Adults', description: 'Hitting, slapping face, scratching, pinching, pulling clothing or glasses, biting, attempting to push adults. Historically high frequency — 22 incidents in 4 weeks at peak. Currently episodic but predictable around triggers. Most likely during demands, waiting, or personal care.', primary_function: 'Escape and avoidance — aggression most reliably occurs immediately following a demand, boundary, delay, or personal care expectation. When this occurs the consistent outcome is immediate reduction or pause in the demand.', secondary_function: 'Connection and sensory regulation — physical contact during aggression also provides proprioceptive input and proximity to adults.' },
+            { name: 'Aggression During Personal Care', description: 'Kicking, biting, nail digging, spitting, prolonged resistance, crying and pushing adults away during pad changes and toileting. Highly predictable — one of the most consistent trigger contexts. High severity due to close proximity positioning.', primary_function: 'Escape and avoidance of physical and sensory discomfort — personal care involves close proximity, reduced autonomy, sensory exposure, and potential discomfort linked to constipation.', secondary_function: 'Communication of pain or vulnerability — behaviour appears to function as a direct signal that this feels uncomfortable or I cannot tolerate this right now.' },
+            { name: 'Object Throwing', description: 'Throwing iPad, fork, bottle at face, household objects targeting faces. Episodic, often during frustration linked to tangible restriction. High risk — facial injury and property damage recorded.', primary_function: 'Escape from frustration and tangible access — most often occurs when access to a preferred item is restricted or a task is interrupted. Behaviour typically results in immediate adult attention and removal of the task.', secondary_function: 'Sensory discharge — throwing provides proprioceptive and vestibular input as expression of frustration when NOG experiences loss of control.' },
+            { name: 'Escalation Following Boundary or Waiting', description: 'Rapid shift from calm to dysregulated. Verbal protest escalating to physical. Increased intensity when told wait. Very frequent — one of the most consistent triggers.', primary_function: 'Escape from delay and intolerance of uncertainty — NOG demonstrates limited delay tolerance and difficulty understanding abstract time concepts. Behaviour reliably shortens or removes the waiting period.', secondary_function: 'Tangible access — escalation frequently results in access to the preferred item or activity being offered as an alternative.' },
+          ],
+          protective_factors: [
+            { title: 'Strong Interest in Trains and Cars', description: 'NOG has a highly motivating and regulating interest in trains and cars. This interest is consistent, predictable, and emotionally positive. It supports focus, engagement, and calm attention.', how_to_use: 'Use trains and cars as transition objects between activities. Build social interaction through turn-taking games. Use as a reward following tolerated waiting. Use trains visually to explain first/then sequencing. Use as grounding tool following escalation.' },
+            { title: 'Positive Response to Change of Face', description: 'NOG consistently responds positively when a different adult takes over during escalation. This interrupts emotional looping and reduces relational intensity.', how_to_use: 'Plan structured change of face during early escalation not late crisis. Use fresh adult before physical behaviour emerges. Ensure second adult approaches calmly not urgently. Use as relational reset not behaviour control.' },
+            { title: 'Responds to Visual Structure', description: 'NOG processes information better visually than verbally. Now/Next boards, PECS and simplified visual sequencing reduce uncertainty and prevent escalation.', how_to_use: 'Use Now/Next consistently not intermittently. Replace no/wait language with visual sequencing. Use visuals before transitions. Pre-warn of changes using visual countdown. Keep visual language simple and predictable. Ensure all adults use the same system.' },
+          ],
+          proactive_strategies: 'Build planned sensory regulation into NOG\'s daily routine rather than waiting for signs of dysregulation. Provide regular movement opportunities before known trigger points such as personal care, mealtimes and transitions. Use clear visual first-then and Now/Next boards to show when preferred items will be available. Provide structured timed access to high-interest items with clear visual endings — countdown or finished card. Avoid sudden restriction unless required for immediate safety. Maintain consistent key adults during high-stress routines — personal care, transitions, after contact. Build scheduled 1:1 connection time into NOG\'s day so attachment needs are proactively met. Use warm relational language alongside clear boundaries. Implement consistent prompted toileting schedule before all activities and use singing during pad changes to reduce resistance.',
+          active_strategies: 'When NOG shows early signs of dysregulation reduce demands immediately. Offer a visual Now/Next to re-establish predictability. Use change of face early — before physical behaviour emerges. Introduce movement or a preferred sensory activity. Maintain calm low-arousal presence throughout. Keep language to a minimum — one word or gesture. Use singing as a regulating tool.',
+          reactive_strategies: 'Prioritise safety — move other children and objects away. Use calm low-arousal body language and minimal verbal input. Change of face is the most consistently effective de-escalation strategy — use it early. Move to a quieter lower-demand environment without framing as punishment. Do not reintroduce demands during or immediately after escalation. Post-incident repair with warm reconnection, brief simple reassurance, and return to routine. No correction or consequence. For pad change resistance: use singing throughout, narrate with simple words, use two adults where needed, offer a preferred item to hold during the process.',
+        })
+    }
+
     return new Response(JSON.stringify({ success: true, message: 'Seeded data for user' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
