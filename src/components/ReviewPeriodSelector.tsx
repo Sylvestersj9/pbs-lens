@@ -44,7 +44,14 @@ export default function ReviewPeriodSelector({ periods, selectedId, onSelect, on
         }}
       >
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="Select review period" />
+          <SelectValue placeholder="Review period">
+            {selectedId
+              ? (() => {
+                  const p = periods.find((p) => p.id === selectedId)
+                  return p ? `${p.label} (${format(new Date(p.date_from), 'dd/MM/yy')} – ${format(new Date(p.date_to), 'dd/MM/yy')})` : 'Review period'
+                })()
+              : 'Custom date range'}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="custom">Custom date range</SelectItem>
