@@ -246,58 +246,60 @@ export default function AnalysisTab({ youngPersonId, youngPersonInitials }: { yo
 
       {/* Draft Analysis output */}
       {draftAnalysis && (
-        <div className="space-y-4 border border-border rounded-lg p-4">
+        <div className="border border-border rounded-lg bg-card shadow-sm overflow-hidden">
           {/* Header */}
-          <div className="flex items-start justify-between">
+          <div className="bg-primary/5 px-6 py-4 border-b border-border flex items-start justify-between">
             <div>
               <h2 className="text-2xl font-bold">{youngPersonInitials}</h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mt-1">
                 {format(new Date(dateFrom), 'dd MMM yyyy')} – {format(new Date(dateTo), 'dd MMM yyyy')} · {incidentCount} incidents
               </p>
             </div>
             <div className="flex gap-2">
-              <Button variant="ghost" size="sm" onClick={() => handleCopy(draftAnalysis)}>
-                <Copy className="h-4 w-4" />
+              <Button variant="outline" size="sm" onClick={() => handleCopy(draftAnalysis)}>
+                <Copy className="h-4 w-4 mr-1" /> Copy
               </Button>
-              <Button variant="ghost" size="sm" onClick={handleExportPdf}>
-                <Download className="h-4 w-4" />
+              <Button variant="outline" size="sm" onClick={handleExportPdf}>
+                <Download className="h-4 w-4 mr-1" /> PDF
               </Button>
             </div>
           </div>
 
           {/* Content */}
-          <div className="prose prose-sm dark:prose-invert max-w-none">
+          <div className="px-6 py-5 prose prose-sm dark:prose-invert max-w-none prose-headings:text-base prose-headings:font-bold prose-headings:mt-6 prose-headings:mb-3 prose-headings:border-b prose-headings:border-border prose-headings:pb-2 first:prose-headings:mt-0 prose-p:my-3 prose-p:leading-relaxed prose-strong:text-foreground">
             <ReactMarkdown>
               {showFullAnalysis ? draftAnalysis : getPartialAnalysis(draftAnalysis)}
             </ReactMarkdown>
           </div>
 
-          {!showFullAnalysis && (
-            <Button variant="ghost" size="sm" onClick={() => setShowFullAnalysis(true)}>
-              Show full analysis
-            </Button>
-          )}
-          {showFullAnalysis && (
-            <Button variant="ghost" size="sm" onClick={() => setShowFullAnalysis(false)}>
-              Show less
-            </Button>
-          )}
+          <div className="px-6 py-3 border-t border-border">
+            {!showFullAnalysis && (
+              <Button variant="ghost" size="sm" onClick={() => setShowFullAnalysis(true)}>
+                Show full analysis
+              </Button>
+            )}
+            {showFullAnalysis && (
+              <Button variant="ghost" size="sm" onClick={() => setShowFullAnalysis(false)}>
+                Show less
+              </Button>
+            )}
+          </div>
         </div>
       )}
 
       {/* Reg 44 output */}
       {reg44Summary && (
-        <div className="border border-border rounded-lg bg-card shadow-sm">
-          <div className="p-6 pb-4 border-b border-border">
-            <h3 className="text-lg font-bold">Reg 44 Incident Summary</h3>
+        <div className="border border-border rounded-lg bg-card shadow-sm overflow-hidden">
+          <div className="bg-primary/5 px-6 py-4 border-b border-border">
+            <h3 className="text-lg font-bold text-foreground">Reg 44 Incident Summary</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              {youngPersonInitials} · {format(new Date(dateFrom), 'dd MMM yyyy')} – {format(new Date(dateTo), 'dd MMM yyyy')}
+              {youngPersonInitials} · {format(new Date(dateFrom), 'dd MMM yyyy')} – {format(new Date(dateTo), 'dd MMM yyyy')} · {incidentCount} incidents
             </p>
           </div>
-          <div className="p-6 prose prose-sm dark:prose-invert max-w-none prose-headings:text-base prose-headings:font-bold prose-headings:border-b prose-headings:border-border prose-headings:pb-2 prose-headings:mb-3 prose-headings:mt-6 first:prose-headings:mt-0 prose-li:my-1 prose-ul:my-2 prose-ol:my-2 prose-p:my-2">
+          <div className="px-6 py-5 prose prose-sm dark:prose-invert max-w-none prose-headings:text-[15px] prose-headings:font-bold prose-headings:mt-6 prose-headings:mb-3 prose-headings:border-b prose-headings:border-border prose-headings:pb-2 first:prose-headings:mt-0 prose-p:my-3 prose-p:leading-relaxed prose-li:my-1.5 prose-ul:my-3 prose-ol:my-3 prose-strong:text-foreground">
             <ReactMarkdown>{reg44Summary}</ReactMarkdown>
           </div>
-          <div className="px-6 pb-4 flex items-center justify-between">
+          <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-background/50">
             <p className="text-xs text-muted-foreground italic">
               Formatted for Reg 44 reporting — review before use
             </p>
