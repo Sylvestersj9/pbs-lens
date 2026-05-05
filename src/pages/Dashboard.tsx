@@ -140,7 +140,7 @@ export default function Dashboard() {
     enabled: !!user?.id,
   })
 
-  const displayName = profile?.display_name || 'Your'
+  const displayName = profile?.display_name || null
 
   if (isLoading) {
     return (
@@ -152,7 +152,7 @@ export default function Dashboard() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }} className="space-y-6 pb-24">
-      <h1 className="text-2xl font-bold">{displayName}&apos;s Dashboard</h1>
+      <h1 className="text-2xl font-bold">{displayName ? `${displayName}'s Dashboard` : 'Your Dashboard'}</h1>
 
       {/* Stats bar */}
       <div className="grid grid-cols-3 gap-4">
