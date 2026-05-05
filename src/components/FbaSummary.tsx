@@ -124,7 +124,7 @@ export default function FbaSummary({ open, onClose, incidents, reviewPeriods, yo
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose() }}>
-      <DialogContent className="max-w-[90vw] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-[90vw] sm:max-w-[90vw] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{youngPersonInitials} — Functional Behaviour Assessment Summary</DialogTitle>
         </DialogHeader>
