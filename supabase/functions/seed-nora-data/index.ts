@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
       .insert(jtIncidents.map(i => ({ ...i, user_id: userId, young_person_id: jtId })))
 
     // Insert Review Periods for MR
-    const reviewPeriods = [
+    const reviewPeriodsData = [
       { label: 'Review 1: 20 Jan – 19 May 2025', date_from: '2025-01-20', date_to: '2025-05-19' },
       { label: 'Review 2: 20 May – 19 Aug 2025', date_from: '2025-05-20', date_to: '2025-08-19' },
       { label: 'Review 3: 20 Aug – 19 Nov 2025', date_from: '2025-08-20', date_to: '2025-11-19' },
@@ -136,9 +136,54 @@ Deno.serve(async (req) => {
       { label: 'Review 5: 20 Feb – 27 Apr 2026', date_from: '2026-02-20', date_to: '2026-04-27' },
     ]
 
-    await supabaseAdmin
+    const { data: insertedPeriods } = await supabaseAdmin
       .from('review_periods')
-      .insert(reviewPeriods.map(rp => ({ ...rp, user_id: userId, young_person_id: mrId })))
+      .insert(reviewPeriodsData.map(rp => ({ ...rp, user_id: userId, young_person_id: mrId })))
+      .select('id, label')
+
+    // Quality Standards scores for MR across Reviews 1, 3, 5
+    // Realistic Reg 44 data: mixed scores, some improving, some static, one deteriorating then recovering
+    if (insertedPeriods && insertedPeriods.length >= 5) {
+      const r1Id = insertedPeriods.find((p: any) => p.label.startsWith('Review 1'))?.id
+      const r3Id = insertedPeriods.find((p: any) => p.label.startsWith('Review 3'))?.id
+      const r5Id = insertedPeriods.find((p: any) => p.label.startsWith('Review 5'))?.id
+
+      const qsScores = [
+        // Review 1 — early placement, mostly Good with some RI
+        { review_period_id: r1Id, regulation: 'Reg 6', score: 2, notes: 'Good quality of care. Communication needs well met with signing staff. Sensory diet in place.', assessed_date: '2025-05-18' },
+        { review_period_id: r1Id, regulation: 'Reg 7', score: 3, notes: 'Two absconding incidents this period. Risk assessment needs updating following garden gate incident.', assessed_date: '2025-05-18' },
+        { review_period_id: r1Id, regulation: 'Reg 8', score: 3, notes: 'Behaviour management plan in place but not yet embedded. Staff inconsistency in applying de-escalation strategies.', assessed_date: '2025-05-18' },
+        { review_period_id: r1Id, regulation: 'Reg 9', score: 2, notes: 'School attendance good. Transport arrangements working well.', assessed_date: '2025-05-18' },
+        { review_period_id: r1Id, regulation: 'Reg 10', score: 3, notes: 'Two instances of physical support this period. Recording needs improvement — duration not always documented.', assessed_date: '2025-05-18' },
+        { review_period_id: r1Id, regulation: 'Reg 11', score: 2, notes: 'Complaints procedure accessible. No formal complaints this period.', assessed_date: '2025-05-18' },
+        { review_period_id: r1Id, regulation: 'Reg 12', score: 2, notes: 'All notifications submitted within timescale.', assessed_date: '2025-05-18' },
+        { review_period_id: r1Id, regulation: 'Reg 14', score: 2, notes: 'Financial records in order. Pocket money system clear and documented.', assessed_date: '2025-05-18' },
+        // Review 3 — epilepsy onset creates pressure, some scores dip
+        { review_period_id: r3Id, regulation: 'Reg 6', score: 2, notes: 'Quality of care maintained despite epilepsy onset. Medical appointments well coordinated. EEG referral expedited.', assessed_date: '2025-11-18' },
+        { review_period_id: r3Id, regulation: 'Reg 7', score: 2, notes: 'Improved from RI. Risk assessments updated. Garden security improved. No absconding this period.', assessed_date: '2025-11-18' },
+        { review_period_id: r3Id, regulation: 'Reg 8', score: 2, notes: 'PBS plan now embedded. Staff consistent in applying swing/trampoline regulatory strategies. Incidents reduced.', assessed_date: '2025-11-18' },
+        { review_period_id: r3Id, regulation: 'Reg 9', score: 3, notes: 'School attendance dropped due to seizure-related absences. Medical evidence in place but pattern needs monitoring.', assessed_date: '2025-11-18' },
+        { review_period_id: r3Id, regulation: 'Reg 10', score: 2, notes: 'Restraint recording improved. All instances timed and documented. Post-incident debriefs happening consistently.', assessed_date: '2025-11-18' },
+        { review_period_id: r3Id, regulation: 'Reg 11', score: 2, notes: 'No complaints. Advocacy service engaged.', assessed_date: '2025-11-18' },
+        { review_period_id: r3Id, regulation: 'Reg 12', score: 4, notes: 'First seizure notification late by 3 days. Second seizure notification timely. Process now clarified with all staff.', assessed_date: '2025-11-18' },
+        { review_period_id: r3Id, regulation: 'Reg 14', score: 2, notes: 'No concerns.', assessed_date: '2025-11-18' },
+        // Review 5 — stabilised on medication, overall improvement
+        { review_period_id: r5Id, regulation: 'Reg 6', score: 1, notes: 'Outstanding quality of care. Seizure management protocol embedded. Communication system expanded with new GRIDS vocabulary. Mum relationship supported brilliantly.', assessed_date: '2026-04-26' },
+        { review_period_id: r5Id, regulation: 'Reg 7', score: 1, notes: 'No missing episodes since Review 2. Environmental security robust. iPad monitoring protocol effective as early warning.', assessed_date: '2026-04-26' },
+        { review_period_id: r5Id, regulation: 'Reg 8', score: 1, notes: 'PBS plan exemplary. Behaviour functions clearly understood by all staff. Incident frequency at lowest since placement. Proactive sensory scheduling embedded.', assessed_date: '2026-04-26' },
+        { review_period_id: r5Id, regulation: 'Reg 9', score: 2, notes: 'School attendance recovered. Seizure protocol agreed with school. Transport contingency in place.', assessed_date: '2026-04-26' },
+        { review_period_id: r5Id, regulation: 'Reg 10', score: 1, notes: 'Minimal restraint this period. When used, recording exemplary. Post-incident PACE repair documented.', assessed_date: '2026-04-26' },
+        { review_period_id: r5Id, regulation: 'Reg 11', score: 2, notes: 'No complaints. Young person engaged with independent visitor.', assessed_date: '2026-04-26' },
+        { review_period_id: r5Id, regulation: 'Reg 12', score: 2, notes: 'Recovered from previous Inadequate. All notifications now within 24 hours. Staff trained on notification triggers for seizures.', assessed_date: '2026-04-26' },
+        { review_period_id: r5Id, regulation: 'Reg 14', score: 2, notes: 'No concerns. Additional medication costs documented and accounted for.', assessed_date: '2026-04-26' },
+      ].filter(s => s.review_period_id) // safety filter
+
+      if (qsScores.length > 0) {
+        await supabaseAdmin
+          .from('quality_standards_scores')
+          .insert(qsScores.map(s => ({ ...s, user_id: userId, young_person_id: mrId })))
+      }
+    }
 
     // Insert MR seizures (4 total)
     const mrSeizures = [
